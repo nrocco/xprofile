@@ -1,0 +1,173 @@
+#!/usr/bin/env python
+import os
+import sys
+
+from re import compile
+from hashlib import md5
+from subprocess import Popen, PIPE
+from argparse import ArgumentParser
+from ConfigParser import ConfigParser
+
+
+VERSION = '1.0.0'
+XRANDR  = '/usr/bin/xrandr'
+RE_EDID = compile(r'^\s*([a-f0-9]{32})$')
+RE_CONNECTED = compile(r'^(\w+) connected.*$')
+
+
+def list_all_profiles(args, config):
+    '''
+    List all known profiles from ~/.xprofilerc
+    '''
+    print('\n'.join(config.sections()));
+    return 0
+
+
+def get_current_edid(args, config):
+    '''
+    Print the current EDID to stdout
+    '''
+    print(_get_current_edid())
+
+
+def activate_profile(args, config):
+    '''
+    Either activate the given profile, or if no profile is given
+    automatically select a known profile by comparing the hashes of
+    EDID's
+    '''
+    if not args.profile:
+        current_edid = _get_current_edid()
+        current_profile = None
+
+        for profile in config.sections():
+            if config.get(profile, '_edid') == current_edid:
+                current_profile = profile
+
+        if not current_profile:
+            print_err('No known profile found for EDID: %s' % current_edid)
+
+            return 1
+
+        args.profile = current_profile
+
+    if not config.has_section(args.profile):
+        print_err('Profile %s not found' % args.profile)
+
+        return 1
+
+    xrandr_args = [XRANDR]
+
+    for output in config.options(args.profile):
+        if output.startswith('_'):
+            continue
+        output_config  = config.get(args.profile, output)
+        xrandr_args   += ('--output %s %s' % (output.upper(), output_config)).split()
+
+    print xrandr_args
+    _call_xrandr(xrandr_args)
+
+    return 0
+
+
+def create_profile(args, config):
+    '''
+    Generate a new .ini style configuration section for the current EDID.
+    Print the result to stdout, so the user can include it in his ~/.xprofilerc
+    '''
+    current_edid = _get_current_edid()
+
+    for profile in config.sections():
+        if config.get(profile, '_edid') == current_edid:
+            print_err('A profile already exists for EDID `%s` with the name `%s`' % (current_edid, profile))
+            return 1
+
+    print('[%s]' % args.profile)
+    print('_NAME = unknown')
+    print('_EDID = %s' % current_edid)
+
+    for line in _call_xrandr([XRANDR]).split('\n'):
+        matches = RE_CONNECTED.match(line)
+        if matches:
+            print '%s = --auto' % matches.group(1)
+
+    return 0
+
+
+def _get_current_edid():
+    '''
+    Get a md5 hash of all EDID of all currently connected screens
+    '''
+    output = _call_xrandr([XRANDR, '--verbose'])
+    md5sum = md5()
+
+    for line in output.split('\n'):
+        if RE_EDID.match(line):
+            md5sum.update(line.strip())
+    return md5sum.hexdigest()
+
+
+def _call_xrandr(args, env=None):
+    '''
+    Make a call to the xrandr binary in a subprocess
+    '''
+    current_env = os.environ.copy()
+
+    if env:
+        current_env.update(env)
+
+    process = Popen(args, env=current_env, stdout=PIPE)
+    stdout, stderr = process.communicate()
+
+    return stdout
+
+
+def print_err(*args):
+    '''
+    Print to stderr
+    '''
+    sys.stderr.write(' '.join(map(str,args)) + '\n')
+
+
+def parse_commandline_arguments(args=None):
+    '''
+    Add several subcommands, each with their own options and arguments.
+    '''
+    parser = ArgumentParser(description='Manage xrandr profiles')
+    parser.add_argument('--version', action='version', version='%(prog)s ' + VERSION)
+    subparsers = parser.add_subparsers(help="The following subcommands are available")
+
+    parser_a = subparsers.add_parser('list', help="List all available xrandr profiles")
+    parser_a.set_defaults(func=list_all_profiles)
+
+    parser_b = subparsers.add_parser('current-edid', help="Get the current profile edid hash")
+    parser_b.set_defaults(func=get_current_edid)
+
+    parser_c = subparsers.add_parser('auto', help="Automatically select the profile")
+    parser_c.set_defaults(func=activate_profile, profile=None)
+
+    parser_d = subparsers.add_parser('activate', help="Activate a known profile")
+    parser_d.set_defaults(func=activate_profile)
+    parser_d.add_argument('profile', help='The profile to select')
+
+    parser_e = subparsers.add_parser('create', help="Create a new profile for the current EDID")
+    parser_e.set_defaults(func=create_profile)
+    parser_e.add_argument('profile', help='The name for the new profile')
+
+    return parser.parse_args()
+
+
+def main(args=None):
+    '''
+    Main entrypoint for this application
+    '''
+    args = parse_commandline_arguments(args)
+
+    config = ConfigParser()
+    config.read(os.path.expanduser('~/.xprofilerc'))
+
+    return args.func(args, config=config)
+
+
+if '__main__' == __name__:
+    sys.exit(main())
