@@ -45,28 +45,21 @@ def activate_profile(args, config):
         current_profile = None
 
         for profile in config.sections():
-            if config.get(profile, '_edid') == current_edid:
+            if config.get(profile, 'edid') == current_edid:
+                print_err('Detected profile {}'.format(profile))
                 current_profile = profile
 
         if not current_profile:
             print_err('No known profile found for EDID: %s' % current_edid)
+            xrandr_args = [XRANDR, '--auto']
+        else:
+            xrandr_args = [XRANDR] + config.get(current_profile, 'args').split()
 
-            return 1
-
-        args.profile = current_profile
-
-    if not config.has_section(args.profile):
+    elif not config.has_section(args.profile):
         print_err('Profile %s not found' % args.profile)
-
         return 1
-
-    xrandr_args = [XRANDR]
-
-    for output in config.options(args.profile):
-        if output.startswith('_'):
-            continue
-        output_config  = config.get(args.profile, output)
-        xrandr_args   += ('--output %s %s' % (output.upper(), output_config)).split()
+    else:
+        xrandr_args = [XRANDR] + config.get(args.profile, 'args').split()
 
     print(xrandr_args)
     _call_xrandr(xrandr_args)
@@ -82,18 +75,14 @@ def create_profile(args, config):
     current_edid = _get_current_edid()
 
     for profile in config.sections():
-        if config.get(profile, '_edid') == current_edid:
+        if config.get(profile, 'edid') == current_edid:
             print_err('A profile already exists for EDID `%s` with the name `%s`' % (current_edid, profile))
             return 1
 
     print('[%s]' % args.profile)
-    print('_NAME = unknown')
-    print('_EDID = %s' % current_edid)
-
-    for line in _call_xrandr([XRANDR]).split('\n'):
-        matches = RE_CONNECTED.match(line)
-        if matches:
-            print('%s = --auto' % matches.group(1))
+    print('name = unknown')
+    print('edid = %s' % current_edid)
+    print('args = --auto')
 
     return 0
 
@@ -111,14 +100,14 @@ def _get_current_edid():
     return md5sum.hexdigest()
 
 
-def _call_xrandr(args, env=None):
+def _call_xrandr(args, display=None):
     '''
     Make a call to the xrandr binary in a subprocess
     '''
     current_env = os.environ.copy()
 
-    if env:
-        current_env.update(env)
+    if display:
+        current_env['DISPLAY'] = display
 
     process = Popen(args, env=current_env, stdout=PIPE)
     stdout, stderr = process.communicate()
