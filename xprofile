@@ -111,6 +111,10 @@ def _call_xrandr(args, display=None):
 
     process = Popen(args, env=current_env, stdout=PIPE)
     stdout, stderr = process.communicate()
+    status = process.wait()
+
+    if status != 0:
+        print_err('xrandr non-zero exit code detected: {}'.format(status))
 
     return stdout
 
