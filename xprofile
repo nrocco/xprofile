@@ -52,7 +52,7 @@ def activate_profile(args, config):
 
         if not current_profile:
             print_err('No known profile found for EDID: {}'.format(current_edid))
-            xrandr_args = [XRANDR, '--auto']
+            xrandr_args = [XRANDR, config.get('DEFAULT', 'args')]
         else:
             xrandr_args = [XRANDR] + config.get(current_profile, 'args').split()
 
@@ -83,7 +83,7 @@ def create_profile(args, config):
     config.add_section(args.profile)
     config.set(args.profile, 'name', '{}\'s xrandr profile'.format(args.profile))
     config.set(args.profile, 'edid', current_edid)
-    config.set(args.profile, 'args', '--auto')
+    config.set(args.profile, 'args', config.get('DEFAULT', 'args'))
     config.write(open(RCFILE, 'w'))
 
     print('Profile created in {}'.format(RCFILE))
