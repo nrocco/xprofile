@@ -15,6 +15,7 @@ except ImportError:
 
 VERSION = '1.0.0'
 XRANDR  = '/usr/bin/xrandr'
+RCFILE = os.path.expanduser('~/.xprofilerc')
 RE_EDID = compile(r'^\s*([a-f0-9]{32})$')
 RE_CONNECTED = compile(r'^(\w+) connected.*$')
 
@@ -79,10 +80,13 @@ def create_profile(args, config):
             print_err('A profile already exists for EDID `{}` with the name `{}`'.format(current_edid, profile))
             return 1
 
-    print('[%s]'.format(args.profile))
-    print('name = unknown')
-    print('edid = %s'.format(current_edid))
-    print('args = --auto')
+    config.add_section(args.profile)
+    config.set(args.profile, 'name', '{}\'s xrandr profile'.format(args.profile))
+    config.set(args.profile, 'edid', current_edid)
+    config.set(args.profile, 'args', '--auto')
+    config.write(open(RCFILE, 'w'))
+
+    print('Profile created in {}'.format(RCFILE))
 
     return 0
 
@@ -161,7 +165,7 @@ def main(args=None):
     args = parse_commandline_arguments(args)
 
     config = ConfigParser()
-    config.read(os.path.expanduser('~/.xprofilerc'))
+    config.read(RCFILE)
 
     return args.func(args, config=config)
 
