@@ -25,6 +25,8 @@ args = --auto
 
 RE_EDID = compile(r'^\s*([a-f0-9]{32})$')
 RE_CONNECTED = compile(r'^(\w+) connected.*$')
+RE_XRANDR_NOISE   = compile(r'^(Screen|\t|  |$)')
+RE_XRANDR_DISPLAY = compile(r'^(?P<name>[^\s]+) (?P<status>disconnected|connected|unknown connection) ?(?P<geometry>(?P<width>[0-9]+)x(?P<height>[0-9]+)\+(?P<x>[0-9]+)\+(?P<y>[0-9]+))? \((?P<modeid>[a-z]+) (?P<rotation>[a-z]+).*\)')
 
 
 def list_all_profiles(args, config):
@@ -93,7 +95,7 @@ def create_profile(args, config):
     config.add_section(args.profile)
     config.set(args.profile, 'name', '{}\'s xrandr profile'.format(args.profile))
     config.set(args.profile, 'edid', current_edid)
-    config.set(args.profile, 'args', config.get('DEFAULT', 'args'))
+    config.set(args.profile, 'args', ' '.join(_get_current_xrandr_config()))
     config.write(open(RCFILE, 'w'))
 
     print('Profile created in {}'.format(RCFILE))
@@ -112,6 +114,59 @@ def _get_current_edid():
         if RE_EDID.match(line):
             md5sum.update(line.strip())
     return md5sum.hexdigest()
+
+
+def _parse_xrandr_output():
+    '''
+    Parse every `display` line from xrandr output and ignore the rest
+    '''
+    output = _call_xrandr([XRANDR])
+    displays = []
+
+    for line in output.split('\n'):
+        parts = RE_XRANDR_DISPLAY.match(line)
+
+        if not parts:
+            continue
+
+        display = {}
+        display['name'] = parts.group('name')
+        display['status'] = parts.group('status')
+        display['connected'] = parts.group('status') == 'connected'
+        display['rotation'] = parts.group('rotation')
+        # TODO: determine display['primary'] = True|False
+
+        if parts.group('geometry'):
+            display['geometry'] = {}
+            display['geometry']['dimension'] = '%sx%s' % (parts.group('width'), parts.group('height'))
+            display['geometry']['offset'] = '%sx%s' % (parts.group('x'), parts.group('y'))
+        else:
+            display['geometry'] = None
+
+        display['active'] = isinstance(display['geometry'], dict)
+
+        displays.append(display)
+
+    return displays
+
+
+def _get_current_xrandr_config():
+    '''
+    Loop through all active displays and create an xrandr compatible
+    option list.
+    '''
+    line = []
+    for display in _parse_xrandr_output():
+        line += ['--output', display['name']]
+        if not display['active']:
+            line += ['--off']
+        else:
+            line += [
+                '--mode',   display['geometry']['dimension'],
+                '--pos',    display['geometry']['offset'],
+                '--rotate', display['rotation']
+            ]
+    return line
 
 
 def _call_xrandr(args, display=None):
