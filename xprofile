@@ -31,7 +31,10 @@ def list_all_profiles(args, config):
     '''
     List all known profiles from ~/.xprofilerc
     '''
-    print('\n'.join(config.sections()));
+    sections = config.sections()
+    if len(sections) > 0:
+        print('\n'.join(config.sections()));
+
     return 0
 
 
