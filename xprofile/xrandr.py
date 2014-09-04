@@ -22,9 +22,9 @@ def _get_current_edid():
     output = _call_xrandr(['--verbose'])
     md5sum = md5()
 
-    for line in output.split('\n'):
+    for line in output.decode().split('\n'):
         if RE_EDID.match(line):
-            md5sum.update(line.strip())
+            md5sum.update(line.strip().encode())
     return md5sum.hexdigest()
 
 
@@ -35,7 +35,7 @@ def _parse_xrandr_output():
     output = _call_xrandr()
     displays = []
 
-    for line in output.split('\n'):
+    for line in output.decode().split('\n'):
         parts = RE_XRANDR_DISPLAY.match(line)
 
         if not parts:

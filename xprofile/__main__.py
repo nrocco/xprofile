@@ -34,6 +34,7 @@ def get_current_state(args, config):
     Print the current EDID to stdout
     Print the current xrandr configuration
     '''
+    # TODO: detecting if profile active, or not
     print(xrandr._get_current_edid())
     print(' '.join(xrandr._get_current_xrandr_config()))
 
