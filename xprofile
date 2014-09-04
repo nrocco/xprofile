@@ -137,7 +137,12 @@ def _parse_xrandr_output():
 
         if parts.group('geometry'):
             display['geometry'] = {}
-            display['geometry']['dimension'] = '%sx%s' % (parts.group('width'), parts.group('height'))
+
+            # TODO: we should parse all modes per display instead of this hack
+            if display['rotation'] == 'left':
+                display['geometry']['dimension'] = '%sx%s' % (parts.group('height'), parts.group('width'))
+            else:
+                display['geometry']['dimension'] = '%sx%s' % (parts.group('width'), parts.group('height'))
             display['geometry']['offset'] = '%sx%s' % (parts.group('x'), parts.group('y'))
         else:
             display['geometry'] = None
