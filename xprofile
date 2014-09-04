@@ -26,7 +26,7 @@ args = --auto
 RE_EDID = compile(r'^\s*([a-f0-9]{32})$')
 RE_CONNECTED = compile(r'^(\w+) connected.*$')
 RE_XRANDR_NOISE   = compile(r'^(Screen|\t|  |$)')
-RE_XRANDR_DISPLAY = compile(r'^(?P<name>[^\s]+) (?P<status>disconnected|connected|unknown connection) ?(?P<geometry>(?P<width>[0-9]+)x(?P<height>[0-9]+)\+(?P<x>[0-9]+)\+(?P<y>[0-9]+))? \((?P<modeid>[a-z]+) (?P<rotation>[a-z]+).*\)')
+RE_XRANDR_DISPLAY = compile(r'^(?P<name>[^\s]+) (?P<status>disconnected|connected|unknown connection) ?(?P<primary>primary)? ?(?P<geometry>(?P<width>[0-9]+)x(?P<height>[0-9]+)\+(?P<x>[0-9]+)\+(?P<y>[0-9]+))? ?(?P<rotation>normal|left|inverted|right)? \((?P<modes>.*)\)')
 
 
 def list_all_profiles(args, config):
@@ -83,7 +83,6 @@ def activate_profile(args, config):
 def create_profile(args, config):
     '''
     Generate a new .ini style configuration section for the current EDID.
-    Print the result to stdout, so the user can include it in his ~/.xprofilerc
     '''
     current_edid = _get_current_edid()
 
@@ -134,7 +133,7 @@ def _parse_xrandr_output():
         display['status'] = parts.group('status')
         display['connected'] = parts.group('status') == 'connected'
         display['rotation'] = parts.group('rotation')
-        # TODO: determine display['primary'] = True|False
+        display['primary'] = parts.group('primary') == 'primary'
 
         if parts.group('geometry'):
             display['geometry'] = {}
@@ -157,15 +156,26 @@ def _get_current_xrandr_config():
     '''
     line = []
     for display in _parse_xrandr_output():
+        if not display['connected']:
+            continue
+
         line += ['--output', display['name']]
+
         if not display['active']:
             line += ['--off']
-        else:
-            line += [
-                '--mode',   display['geometry']['dimension'],
-                '--pos',    display['geometry']['offset'],
-                '--rotate', display['rotation']
-            ]
+            continue
+
+        if display['primary']:
+            line += ['--primary']
+
+        line += [
+            '--mode', display['geometry']['dimension'],
+            '--pos',  display['geometry']['offset']
+        ]
+
+        if display['rotation']:
+            line += ['--rotate', display['rotation']]
+
     return line
 
 
