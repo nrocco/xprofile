@@ -5,7 +5,7 @@ from setuptools import setup
 
 setup(
     name = "xprofile",
-    description = "Manage xrandr profiles.",
+    description = "A tool to manage and automatically apply xrandr configurations.",
     version = re.search(r'''^__version__\s*=\s*["'](.*)["']''', open('xprofile/__init__.py').read(), re.M).group(1),
     author = "Nico Di Rocco",
     author_email = "dirocco.nico@gmail.com",

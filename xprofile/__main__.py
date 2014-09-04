@@ -107,7 +107,7 @@ def parse_commandline_arguments(args=None):
     '''
     Add several subcommands, each with their own options and arguments.
     '''
-    parser = ArgumentParser(prog='xprofile', description='Manage xrandr profiles.')
+    parser = ArgumentParser(prog='xprofile', description='A tool to manage and automatically apply xrandr configurations.')
 
     parser.add_argument('--verbose', action='store_true', help='output more verbosely')
     parser.add_argument('--config',  default='~/.xprofilerc', help='config file to read profiles from')
