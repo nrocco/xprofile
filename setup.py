@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import re
+import codecs
 from setuptools import setup
 
 
@@ -10,8 +11,8 @@ setup(
     author = "Nico Di Rocco",
     author_email = "dirocco.nico@gmail.com",
     url = "https://github.com/nrocco/xprofile",
-    license = open('LICENSE').read(),
-    long_description = open("README.rst", "rb").read(),
+    license = codecs.open('LICENSE', 'rb', 'utf-8').read(),
+    long_description = codecs.open("README.rst", 'rb', 'utf-8').read(),
     packages = [
         "xprofile"
     ],
