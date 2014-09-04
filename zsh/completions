@@ -8,7 +8,7 @@ _xprofile() {
     
     case "$state" in
         subcommand)
-            _arguments '1:Subcommands:(list current-edid auto activate create -h --help --version)'
+            _arguments '1:Subcommands:(list current-edid current-config auto activate create -h --help --version)'
             ;;
         *)
             case $words[2] in

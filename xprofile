@@ -47,6 +47,12 @@ def get_current_edid(args, config):
     print(_get_current_edid())
 
 
+def get_current_xrandr(args, config):
+    '''
+    Print the current xrandr configuration
+    '''
+    print ' '.join(_get_current_xrandr_config())
+
 def activate_profile(args, config):
     '''
     Either activate the given profile, or if no profile is given
@@ -234,6 +240,9 @@ def parse_commandline_arguments(args=None):
     parser_e = subparsers.add_parser('create', help="Create a new profile for the current EDID")
     parser_e.set_defaults(func=create_profile)
     parser_e.add_argument('profile', help='The name for the new profile')
+
+    parser_f = subparsers.add_parser('current-config', help="Get the current xrandr configuration")
+    parser_f.set_defaults(func=get_current_xrandr)
 
     return parser.parse_args()
 
