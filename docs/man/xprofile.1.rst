@@ -11,7 +11,7 @@ A tool to manage and automatically apply xrandr configurations
 :Author: Nico Di Rocco <dirocco.nico@gmail.com>
 :Date: 2014-09-05
 :Copyright: GPLv3
-:Version: 1.1.3
+:Version: 1.1.4
 :Manual section: 1
 
 SYNOPSIS
