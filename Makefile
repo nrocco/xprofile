@@ -24,6 +24,7 @@ publish:
 man:
 	mkdir -p build/man
 	rst2man.py docs/man/xprofile.1.rst build/man/xprofile.1
+	rst2man.py docs/man/xprofilerc.5.rst build/man/xprofilerc.5
 
 docs:
 	mkdir -p build

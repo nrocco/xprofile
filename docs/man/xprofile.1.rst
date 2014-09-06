@@ -18,12 +18,14 @@ SYNOPSIS
 ========
 **xprofile** [--verbose] [--config CONFIG] *subcommand*
 
+
 OPTIONS
 =======
 -h, --help            show this help message and exit
 --verbose             output more verbosely
 --config CONFIG       config file to read profiles from
 --version             show program's version number and exit
+
 
 SUBCOMMANDS
 ===========
@@ -42,9 +44,11 @@ activate
 create
     create a new profile based on the current state
 
+
 DESCRIPTION
 ===========
 **xprofile** TODO: edit this
+
 
 CONFIGURATION
 =============
@@ -58,16 +62,18 @@ The location of the configuration file can be configured using the
 you wish you can manually edit this configuration file. For details on how to
 write **xprofile** configuration files refer to **xprofilerc**\(5)
 
+
 SEE ALSO
 ========
 **xprofilerc**\(5), **xrandr**\(1)
+
 
 BUGS
 ====
 **xprofile** might not support every xrandr configuration options.
 
+
 CHANGELOG
 =========
 .. include:: ../../CHANGELOG.rst
    :start-line: 4
-
