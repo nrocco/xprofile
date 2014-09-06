@@ -116,7 +116,8 @@ def _call_xrandr(args=[], display=None):
     status = process.wait()
 
     if status != 0:
-        log.error('xrandr terminated with exit code %s: %s', status, stderr)
-        raise RuntimeError('xrandr failed')
+        message = 'xrandr error: {}'.format(stderr)
+        log.error(message)
+        raise RuntimeError(message)
 
     return stdout

@@ -3,7 +3,7 @@ from mock import patch
 from xprofile import xrandr
 
 
-XRANDR_STDOUT_SAMPLE1 = '''\
+XRANDR_STDOUT_SAMPLE1 = b'''\
 Screen 0: minimum 320 x 200, current 2560 x 1024, maximum 4096 x 4096
 VGA1 connected 1280x1024+0+0 (normal left inverted right x axis y axis) 340mm x 270mm
    1280x1024      60.0*+   75.0
@@ -32,7 +32,7 @@ def test_call_xrandr_failure(Popen):
     try:
         edid = xrandr._call_xrandr(['--verbose'])
     except RuntimeError as err:
-        assert err.message == 'xrandr failed'
+        assert str(err) == 'xrandr error: An unknown error occurred.'
     else:
         assert False, 'Failed to raise RuntimeError'
 
@@ -75,7 +75,7 @@ def test_parse_xrandr_output(Popen):
     assert displays[2]['geometry'] == None
 
 @patch('xprofile.xrandr.Popen')
-def test_parse_xrandr_output(Popen):
+def test_get_current_xrandr_config(Popen):
     Popen.return_value.communicate.return_value = (XRANDR_STDOUT_SAMPLE1, None)
     Popen.return_value.wait.return_value = 0
 
