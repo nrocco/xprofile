@@ -31,3 +31,7 @@ docs:
 	rst2html.py README.rst build/README.html
 	rst2html.py docs/man/xprofile.1.rst build/xprofile.1.html
 	rst2html.py docs/man/xprofilerc.5.rst build/xprofilerc.5.html
+
+.PHONY: test
+test:
+	python setup.py test

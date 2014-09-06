@@ -5,19 +5,27 @@ from setuptools import setup
 
 
 setup(
-    name = "xprofile",
-    description = "A tool to manage and automatically apply xrandr configurations.",
+    name = 'xprofile',
+    description = 'A tool to manage and automatically apply xrandr configurations.',
     version = re.search(r'''^__version__\s*=\s*["'](.*)["']''', open('xprofile/__init__.py').read(), re.M).group(1),
-    author = "Nico Di Rocco",
-    author_email = "dirocco.nico@gmail.com",
-    url = "https://github.com/nrocco/xprofile",
-    license = codecs.open('LICENSE', 'rb', 'utf-8').read(),
-    long_description = codecs.open("README.rst", 'rb', 'utf-8').read(),
+    author = 'Nico Di Rocco',
+    author_email = 'dirocco.nico@gmail.com',
+    url = 'https://github.com/nrocco/xprofile',
+    license = 'LICENSE',
+    long_description = codecs.open('README.rst', 'rb', 'utf-8').read(),
+    test_suite='nose.collector',
+    install_requires = [
+        'docutils>=0.12'
+    ],
+    tests_require = [
+        'nose',
+        'mock',
+    ],
     packages = [
-        "xprofile"
+        'xprofile'
     ],
     entry_points = {
-        "console_scripts": [
+        'console_scripts': [
             'xprofile = xprofile.__main__:main'
         ]
     },
