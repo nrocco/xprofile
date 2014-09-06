@@ -20,3 +20,7 @@ clean:
 publish:
 	python setup.py register
 	python setup.py sdist upload
+
+man:
+	mkdir -p build/man
+	rst2man.py docs/man/xprofile.1.rst build/man/xprofile.1
