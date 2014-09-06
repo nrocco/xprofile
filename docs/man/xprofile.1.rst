@@ -68,6 +68,6 @@ BUGS
 
 CHANGELOG
 =========
-.. include:: ../../CHANGELOG
+.. include:: ../../CHANGELOG.rst
    :start-line: 4
 
