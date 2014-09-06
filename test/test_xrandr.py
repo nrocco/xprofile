@@ -3,26 +3,8 @@ from mock import patch
 from xprofile import xrandr
 
 
-XRANDR_STDOUT_SAMPLE1 = b'''\
-Screen 0: minimum 320 x 200, current 2560 x 1024, maximum 4096 x 4096
-VGA1 connected 1280x1024+0+0 (normal left inverted right x axis y axis) 340mm x 270mm
-   1280x1024      60.0*+   75.0
-   1024x768       75.1     70.1     60.0
-   832x624        74.6
-   800x600        72.2     75.0     60.3     56.2
-   640x480        72.8     75.0     66.7     60.0
-   720x400        70.1
-DVI1 connected 1280x1024+1280+0 (normal left inverted right x axis y axis) 340mm x 270mm
-   1280x1024      60.0 +   75.0*
-   1024x768       75.1     70.1     60.0
-   832x624        74.6
-   800x600        72.2     75.0     60.3     56.2
-   640x480        72.8     75.0     66.7     60.0
-   720x400        70.1
-TV1 unknown connection (normal left inverted right x axis y axis)
-   1024x768       60.0
-   800x600        60.3
-   640x480        59.9'''
+with open('test/multi_screen.txt', 'rb') as file:
+    XRANDR_MULTI_SCREEN = file.read()
 
 
 @patch('xprofile.xrandr.Popen')
@@ -42,7 +24,7 @@ def test_call_xrandr_failure(Popen):
 
 @patch('xprofile.xrandr.Popen')
 def test_parse_xrandr_output(Popen):
-    Popen.return_value.communicate.return_value = (XRANDR_STDOUT_SAMPLE1, None)
+    Popen.return_value.communicate.return_value = (XRANDR_MULTI_SCREEN, None)
     Popen.return_value.wait.return_value = 0
 
     displays = xrandr._parse_xrandr_output()
@@ -76,7 +58,7 @@ def test_parse_xrandr_output(Popen):
 
 @patch('xprofile.xrandr.Popen')
 def test_get_current_xrandr_config(Popen):
-    Popen.return_value.communicate.return_value = (XRANDR_STDOUT_SAMPLE1, None)
+    Popen.return_value.communicate.return_value = (XRANDR_MULTI_SCREEN, None)
     Popen.return_value.wait.return_value = 0
 
     config = xrandr._get_current_xrandr_config()
