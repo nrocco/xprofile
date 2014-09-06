@@ -88,16 +88,16 @@ def create_profile(args, config):
 
     for profile in config.sections():
         if config.get(profile, 'edid') == current_edid:
-            log.error('A profile `{}` already exists for EDID `{}`.'.format(profile, current_edid))
+            log.error('A profile `{0}` already exists for EDID `{1}`.'.format(profile, current_edid))
             return 1
 
     if not args.dry_run:
         config.add_section(args.profile)
-        config.set(args.profile, 'name', args.description or '{}\'s xrandr profile'.format(args.profile))
+        config.set(args.profile, 'name', args.description or '{0}\'s xrandr profile'.format(args.profile))
         config.set(args.profile, 'edid', current_edid)
         config.set(args.profile, 'args', ' '.join(xrandr._get_current_xrandr_config()))
         config.write(open(RCFILE, 'w'))
-        print('Profile created in {}'.format(RCFILE))
+        print('Profile created in {0}'.format(RCFILE))
     else:
         print('blaat')
 
