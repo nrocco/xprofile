@@ -24,3 +24,10 @@ publish:
 man:
 	mkdir -p build/man
 	rst2man.py docs/man/xprofile.1.rst build/man/xprofile.1
+
+docs:
+	mkdir -p build
+	rst2html.py CHANGELOG.rst build/CHANGELOG.html
+	rst2html.py README.rst build/README.html
+	rst2html.py docs/man/xprofile.1.rst build/xprofile.1.html
+	rst2html.py docs/man/xprofilerc.5.rst build/xprofilerc.5.html
