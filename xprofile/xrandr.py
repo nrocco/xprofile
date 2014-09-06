@@ -1,11 +1,14 @@
 # -*- coding: utf-8 -*-
 
 import os
+import logging
 
 from re import compile
 from hashlib import md5
 from subprocess import Popen, PIPE
 
+
+log = logging.getLogger(__name__)
 
 XRANDR  = '/usr/bin/xrandr'  # TODO: make this configurable
 
@@ -108,11 +111,12 @@ def _call_xrandr(args=[], display=None):
 
     current_env['DISPLAY'] = ':0'  # TODO: Hack remove this
 
-    process = Popen([XRANDR] + args, env=current_env, stdout=PIPE)
+    process = Popen([XRANDR] + args, env=current_env, stdout=PIPE, stderr=PIPE)
     stdout, stderr = process.communicate()
     status = process.wait()
 
     if status != 0:
-        print_err('xrandr non-zero exit code detected: {}'.format(status))
+        log.error('xrandr terminated with exit code %s: %s', status, stderr)
+        raise RuntimeError('xrandr failed')
 
     return stdout
