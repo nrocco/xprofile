@@ -5,4 +5,5 @@ python:
   - "3.2"
   - "3.3"
   - "3.4"
+install: echo this project has no dependencies
 script: make test

@@ -82,6 +82,6 @@ def test_parse_xrandr_output(Popen):
     config = xrandr._get_current_xrandr_config()
 
     assert config == [
-        '--output', u'VGA1', '--mode', u'1280x1024', '--pos', u'0x0',
-        '--output', u'DVI1', '--mode', u'1280x1024', '--pos', u'1280x0'
+        '--output', 'VGA1', '--mode', '1280x1024', '--pos', '0x0',
+        '--output', 'DVI1', '--mode', '1280x1024', '--pos', '1280x0'
     ]
