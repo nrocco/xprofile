@@ -6,6 +6,9 @@ from xprofile import xrandr
 with open('test/multi_screen.txt', 'rb') as file:
     XRANDR_MULTI_SCREEN = file.read()
 
+with open('test/laptop_screen.verbose.txt', 'rb') as file:
+    XRANDR_LAPTOP_SCREEN_VERBOSE = file.read()
+
 
 @patch('xprofile.xrandr.Popen')
 def test_call_xrandr_failure(Popen):
@@ -63,7 +66,23 @@ def test_get_current_xrandr_config(Popen):
 
     config = xrandr._get_current_xrandr_config()
 
+    assert Popen.called
+    assert Popen.call_args[0][0] == ['/usr/bin/xrandr']
+
     assert config == [
         '--output', 'VGA1', '--mode', '1280x1024', '--pos', '0x0',
         '--output', 'DVI1', '--mode', '1280x1024', '--pos', '1280x0'
     ]
+
+
+@patch('xprofile.xrandr.Popen')
+def test_get_current_edid(Popen):
+    Popen.return_value.communicate.return_value = (XRANDR_LAPTOP_SCREEN_VERBOSE, None)
+    Popen.return_value.wait.return_value = 0
+
+    current_edid = xrandr._get_current_edid()
+
+    assert Popen.called
+    assert Popen.call_args[0][0] == ['/usr/bin/xrandr', '--verbose']
+
+    assert current_edid == "cfdee1377d86e245f2d187082f7a504a"
