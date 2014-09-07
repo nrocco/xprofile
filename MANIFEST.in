@@ -1,3 +1,4 @@
 include README.rst LICENSE CHANGELOG.rst
 include zsh/completions
 include docs/man/*.rst
+include test/*.rst
