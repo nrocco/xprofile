@@ -11,7 +11,7 @@ setup(
     author = 'Nico Di Rocco',
     author_email = 'dirocco.nico@gmail.com',
     url = 'https://github.com/nrocco/xprofile',
-    license = 'LICENSE',
+    license = 'GPLv3',
     long_description = codecs.open('README.rst', 'rb', 'utf-8').read(),
     test_suite='nose.collector',
     install_requires = [
