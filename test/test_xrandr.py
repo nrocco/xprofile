@@ -9,6 +9,9 @@ with open('test/multi_screen.txt', 'rb') as file:
 with open('test/laptop_screen.verbose.txt', 'rb') as file:
     XRANDR_LAPTOP_SCREEN_VERBOSE = file.read()
 
+with open('test/docked.txt', 'rb') as file:
+    XRANDR_DOCKED_SCREEN = file.read()
+
 
 @patch('xprofile.xrandr.Popen')
 def test_call_xrandr_failure(Popen):
@@ -86,3 +89,35 @@ def test_get_current_edid(Popen):
     assert Popen.call_args[0][0] == ['/usr/bin/xrandr', '--verbose']
 
     assert current_edid == "cfdee1377d86e245f2d187082f7a504a"
+
+
+@patch('xprofile.xrandr.Popen')
+def test_parse_xrandr_output_docked(Popen):
+    Popen.return_value.communicate.return_value = (XRANDR_DOCKED_SCREEN, None)
+    Popen.return_value.wait.return_value = 0
+
+    displays = xrandr._parse_xrandr_output()
+
+    assert Popen.called
+    assert Popen.call_args[0][0] == ['/usr/bin/xrandr']
+    assert len(displays) == 8
+
+    for index in [0, 5, 6]:
+        assert displays[index]['connected'] == True
+        assert displays[index]['status'] == 'connected'
+
+    for index in [1, 2, 3, 4, 7]:
+        assert displays[index]['connected'] == False
+        assert displays[index]['status'] == 'disconnected'
+
+    assert displays[0]['name'] == 'LVDS1'
+    assert displays[0]['geometry'] == None
+
+    assert displays[5]['name'] == 'HDMI3'
+    assert displays[5]['geometry']['dimension'] == '1920x1080'
+    assert displays[5]['geometry']['offset'] == '1930x0'
+    assert displays[5]['rotation'] == 'left'
+
+    assert displays[6]['name'] == 'DP2'
+    assert displays[6]['geometry']['dimension'] == '1920x1080'
+    assert displays[6]['geometry']['offset'] == '0x500'

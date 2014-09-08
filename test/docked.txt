@@ -1,0 +1,31 @@
+Screen 0: minimum 320 x 200, current 3010 x 1920, maximum 8192 x 8192
+LVDS1 connected (normal left inverted right x axis y axis)
+   1920x1080     60.15 +  40.06  
+   1400x1050     59.98  
+   1280x1024     60.02  
+   1280x960      60.00  
+   1024x768      60.00  
+   800x600       60.32    56.25  
+   640x480       59.94  
+VGA1 disconnected (normal left inverted right x axis y axis)
+HDMI1 disconnected (normal left inverted right x axis y axis)
+DP1 disconnected (normal left inverted right x axis y axis)
+HDMI2 disconnected (normal left inverted right x axis y axis)
+HDMI3 connected 1080x1920+1930+0 left (normal left inverted right x axis y axis) 509mm x 286mm
+   1920x1080     60.00*+
+   1280x1024     75.02    60.02  
+   1152x864      75.00  
+   1024x768      75.08    60.00  
+   800x600       75.00    60.32  
+   640x480       75.00    60.00  
+   720x400       70.08  
+DP2 connected primary 1920x1080+0+500 (normal left inverted right x axis y axis) 527mm x 297mm
+   1920x1080     60.00*+
+   1600x900      59.98  
+   1280x1024     75.02    60.02  
+   1152x864      75.00  
+   1024x768      75.08    60.00  
+   800x600       75.00    60.32  
+   640x480       75.00    60.00  
+   720x400       70.08  
+DP3 disconnected (normal left inverted right x axis y axis)
