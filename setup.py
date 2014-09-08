@@ -1,7 +1,21 @@
 # -*- coding: utf-8 -*-
 import re
 import codecs
+
 from setuptools import setup
+from setuptools.command.test import test as TestCommand
+
+
+class NoseTestCommand(TestCommand):
+    def finalize_options(self):
+        TestCommand.finalize_options(self)
+        self.test_args = []
+        self.test_suite = True
+
+    def run_tests(self):
+        # Run nose ensuring that argv simulates running nosetests directly
+        import nose
+        nose.run_exit(argv=['nosetests'])
 
 
 setup(
@@ -20,6 +34,7 @@ setup(
     tests_require = [
         'nose',
         'mock',
+        'coverage',
     ],
     packages = [
         'xprofile'
@@ -45,5 +60,8 @@ setup(
         'Programming Language :: Python :: 3.4',
         'Topic :: Desktop Environment',
         'Topic :: Utilities'
-    ]
+    ],
+    cmdclass = {
+        'test': NoseTestCommand
+    }
 )
