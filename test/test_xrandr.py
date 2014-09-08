@@ -158,5 +158,5 @@ def test_xrandr_get_screen_laptop(Popen):
         assert display['active'] == False
 
     assert screen.get_xrandr_options() == [
-        '--output', u'LVDS1', '--mode', u'1920x1080', '--pos', u'0x0'
+        '--output', 'LVDS1', '--mode', '1920x1080', '--pos', '0x0'
     ]
