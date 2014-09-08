@@ -162,7 +162,7 @@ def main(args=None):
     if not os.path.exists(args.config):
         log.info('Creating config file because it does not exist: %s', args.config)
         with open(args.config, 'w') as file:
-            file.write(xprofile.DEFAULT_SECTION.format(display=os.environ['DISPLAY']))
+            file.write(DEFAULT_SECTION.format(display=os.environ['DISPLAY']))
 
     # Read profile configuration
     config = ConfigParser()
