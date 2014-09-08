@@ -121,3 +121,31 @@ def test_parse_xrandr_output_docked(Popen):
     assert displays[6]['name'] == 'DP2'
     assert displays[6]['geometry']['dimension'] == '1920x1080'
     assert displays[6]['geometry']['offset'] == '0x500'
+
+
+@patch('xprofile.xrandr.Popen')
+def test_get_current_xrandr_config_docked(Popen):
+    Popen.return_value.communicate.return_value = (XRANDR_DOCKED_SCREEN, None)
+    Popen.return_value.wait.return_value = 0
+
+    config = xrandr._get_current_xrandr_config()
+
+    assert Popen.called
+    assert Popen.call_args[0][0] == ['/usr/bin/xrandr']
+
+    assert config == [
+        '--output', 'LVDS1', '--off',
+        '--output', 'HDMI3', '--mode', '1920x1080', '--pos', '1930x0', '--rotate', 'left',
+        '--output', 'DP2',   '--primary', '--mode', '1920x1080', '--pos', '0x500'
+    ]
+
+
+@patch('xprofile.xrandr.Popen')
+def test_call_xrandr_set_display(Popen):
+    Popen.return_value.communicate.return_value = (XRANDR_MULTI_SCREEN, None)
+    Popen.return_value.wait.return_value = 0
+
+    xrandr._call_xrandr([], display=':1')
+
+    assert Popen.called
+    assert Popen.call_args[1]['env']['DISPLAY'] == ':1'
