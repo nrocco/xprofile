@@ -138,7 +138,12 @@ def parse_commandline_arguments(args=None):
     parser_e.add_argument('profile', help='the name for the new profile')
     parser_e.set_defaults(func=create_profile)
 
-    return parser.parse_args(), parser
+    if args:
+        parsed_args = parser.parse_args(args)
+    else:
+        parsed_args = parser.parse_args()
+
+    return parsed_args, parser
 
 
 def main(args=None):
