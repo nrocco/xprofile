@@ -7,7 +7,8 @@ import logging
 
 from argparse import ArgumentParser
 
-from xprofile import __version__, DEFAULT_SECTION, xrandr
+from xprofile import __version__, DEFAULT_SECTION
+from xprofile.xrandr import Xrandr
 
 
 try:
@@ -35,8 +36,8 @@ def get_current_state(args, config):
     Print the current xrandr configuration
     '''
     # TODO: detecting if profile active, or not
-    print(xrandr._get_current_edid())
-    print(' '.join(xrandr._get_current_xrandr_config()))
+    print(Xrandr().get_edid())
+    print(' '.join(Xrandr().get_screen().get_xrandr_options()))
 
 
 def activate_profile(args, config):
@@ -46,7 +47,7 @@ def activate_profile(args, config):
     EDID's
     '''
     if not args.profile:
-        current_edid = xrandr._get_current_edid()
+        current_edid = Xrandr().get_edid()
         current_profile = None
 
         log.info('Auto detecting profile for EDID: %s', current_edid)
@@ -73,7 +74,7 @@ def activate_profile(args, config):
     log.info('Calling xrandr with: %s', ' '.join(xrandr_args))
 
     if not args.dry_run:
-        xrandr._call_xrandr(xrandr_args)
+        Xrandr().call_xrandr(xrandr_args)
     else:
         log.warn('Not calling xrandr because --dry-run option detected')
 
@@ -84,7 +85,7 @@ def create_profile(args, config):
     '''
     Generate a new .ini style configuration section for the current EDID.
     '''
-    current_edid = xrandr._get_current_edid()
+    current_edid = Xrandr().get_edid()
 
     for profile in config.sections():
         if config.get(profile, 'edid') == current_edid:
@@ -95,7 +96,7 @@ def create_profile(args, config):
         config.add_section(args.profile)
         config.set(args.profile, 'name', args.description or '{0}\'s xrandr profile'.format(args.profile))
         config.set(args.profile, 'edid', current_edid)
-        config.set(args.profile, 'args', ' '.join(xrandr._get_current_xrandr_config()))
+        config.set(args.profile, 'args', ' '.join(Xrandr().get_screen().get_xrandr_options()))
         config.write(open(RCFILE, 'w'))
         print('Profile created in {0}'.format(RCFILE))
     else:
