@@ -109,8 +109,6 @@ def _call_xrandr(args=[], display=None):
     if display:
         current_env['DISPLAY'] = display
 
-    current_env['DISPLAY'] = ':0'  # TODO: Hack remove this
-
     process = Popen([XRANDR] + args, env=current_env, stdout=PIPE, stderr=PIPE)
     stdout, stderr = process.communicate()
     status = process.wait()
