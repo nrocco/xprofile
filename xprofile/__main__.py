@@ -50,36 +50,40 @@ def activate_profile(args, config):
     automatically select a known profile by comparing the hashes of
     EDID's
     '''
+    xrandr = Xrandr()
+
     if not args.profile:
-        screen = Xrandr().get_screen()
+        log.info('Determining EDID hash of the current screen...')
+        screen = xrandr.get_screen()
         current_edid = screen.get_edid()
         current_profile = None
 
-        log.info('Auto detecting profile for EDID: %s', current_edid)
+        log.info('Current EDID: {0}'.format(current_edid))
+        log.info('Search through known profiles...')
 
         for profile in config.sections():
             if config.get(profile, 'edid') == current_edid:
                 current_profile = profile
-                log.warn('Identified current state as profile: %s', profile)
+                log.warn('Known profile found for this screen: %s', profile)
 
         if not current_profile:
             current_profile = 'DEFAULT'
-            log.error('No known profile found for EDID: %s', current_edid)
+            log.error('No known profile found, falling back to defaults')
 
         xrandr_args = config.get(current_profile, 'args').split()
 
     elif not config.has_section(args.profile):
-        log.error('Profile %s not found', args.profile)
+        log.error('No known profile found with name: %s', args.profile)
         return 1
 
     else:
         xrandr_args = config.get(args.profile, 'args').split()
-        log.info('Activating profile: %s', args.profile)
+        log.info('Activating profile %s...', args.profile)
 
     log.info('Calling xrandr with: %s', ' '.join(xrandr_args))
 
     if not args.dry_run:
-        Xrandr().call_xrandr(xrandr_args)
+        xrandr.call_xrandr(xrandr_args)
     else:
         log.warn('Not calling xrandr because --dry-run option detected')
 
