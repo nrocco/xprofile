@@ -1,6 +1,6 @@
 .\" Man page generated from reStructuredText.
 .
-.TH XPROFILE 1 "2014-09-05" "1.1.4" ""
+.TH XPROFILE 1 "2014-09-05" "1.1.5" ""
 .SH NAME
 xprofile \- A tool to manage and automatically apply xrandr configurations
 .
@@ -90,6 +90,28 @@ write \fBxprofile\fP configuration files refer to \fBxprofilerc\fP(5)
 \fBxprofile\fP might not support every xrandr configuration options.
 .SH CHANGELOG
 .INDENT 0.0
+.TP
+.B 1.1.5 \- 2014\-09\-09
+.INDENT 7.0
+.IP \(bu 2
+Added: Implement the \-\-dry\-run option for the \fIcreate\fP subcommand.
+.IP \(bu 2
+Added: Improve verbose logging for the \fIauto\fP and \fIactivate\fP subcommands
+.IP \(bu 2
+Added: unittest, code is now stable and has 97% coverage.
+.IP \(bu 2
+Added: Reduced the amount of xrandr calls needed (now always parsing
+xrandr \-\-verbose). This should improve the \fIauto\fP and \fIcreate\fP
+subcommands.
+.IP \(bu 2
+Bugfix: \fIxprofile current\fP was not explicitly returning a 0 exit code
+.IP \(bu 2
+Bugfix: do not check or edid in the \fIcreate\fP subcommand
+.IP \(bu 2
+Bugfix: fix wrong usage of imported DEFAULT_SECTION variable
+.IP \(bu 2
+Removed: not setting DISPLAY=:0 anymore
+.UNINDENT
 .TP
 .B 1.1.4 \- 2014\-09\-06
 .INDENT 7.0
