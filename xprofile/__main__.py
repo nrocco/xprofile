@@ -36,8 +36,10 @@ def get_current_state(args, config):
     Print the current xrandr configuration
     '''
     # TODO: detecting if profile active, or not
-    print(Xrandr().get_edid())
-    print(' '.join(Xrandr().get_screen().get_xrandr_options()))
+    screen = Xrandr().get_screen()
+
+    print('edid = {0}'.format(screen.get_edid()))
+    print('args = {0}'.format(' '.join(screen.get_xrandr_options())))
 
 
 def activate_profile(args, config):
@@ -47,7 +49,8 @@ def activate_profile(args, config):
     EDID's
     '''
     if not args.profile:
-        current_edid = Xrandr().get_edid()
+        screen = Xrandr().get_screen()
+        current_edid = screen.get_edid()
         current_profile = None
 
         log.info('Auto detecting profile for EDID: %s', current_edid)
@@ -85,7 +88,8 @@ def create_profile(args, config):
     '''
     Generate a new .ini style configuration section for the current EDID.
     '''
-    current_edid = Xrandr().get_edid()
+    screen = Xrandr().get_screen()
+    current_edid = screen.get_edid()
 
     for profile in config.sections():
         if config.get(profile, 'edid') == current_edid:
@@ -96,7 +100,7 @@ def create_profile(args, config):
         config.add_section(args.profile)
         config.set(args.profile, 'name', args.description or '{0}\'s xrandr profile'.format(args.profile))
         config.set(args.profile, 'edid', current_edid)
-        config.set(args.profile, 'args', ' '.join(Xrandr().get_screen().get_xrandr_options()))
+        config.set(args.profile, 'args', ' '.join(screen.get_xrandr_options()))
         config.write(open(RCFILE, 'w'))
         print('Profile created in {0}'.format(RCFILE))
     else:

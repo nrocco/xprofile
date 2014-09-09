@@ -9,7 +9,7 @@ def test_call_xrandr_failure(Popen):
     Popen.return_value.wait.return_value = 1
 
     try:
-        edid = Xrandr().get_edid()
+        edid = Xrandr().get_screen()
     except RuntimeError as err:
         assert str(err) == 'xrandr error: An unknown error occurred.'
     else:
@@ -17,22 +17,6 @@ def test_call_xrandr_failure(Popen):
 
     assert Popen.called
     assert Popen.call_args[0][0] == ['/usr/bin/xrandr', '--verbose']
-
-
-@patch('xprofile.xrandr.Popen')
-def test_get_current_edid(Popen):
-    with open('test/laptop_screen.verbose.txt', 'rb') as file:
-        xrandr_stdout = file.read()
-
-    Popen.return_value.communicate.return_value = (xrandr_stdout, None)
-    Popen.return_value.wait.return_value = 0
-
-    current_edid = Xrandr().get_edid()
-
-    assert Popen.called
-    assert Popen.call_args[0][0] == ['/usr/bin/xrandr', '--verbose']
-
-    assert current_edid == "cfdee1377d86e245f2d187082f7a504a"
 
 
 @patch('xprofile.xrandr.Popen')
@@ -57,7 +41,7 @@ def test_xrandr_get_screen_multiple(Popen):
     screen = Xrandr().get_screen()
 
     assert Popen.called
-    assert Popen.call_args[0][0] == ['/usr/bin/xrandr']
+    assert Popen.call_args[0][0] == ['/usr/bin/xrandr', '--verbose']
     assert len(screen['displays']) == 3
 
     assert screen['displays'][0]['name'] == 'VGA1'
@@ -88,6 +72,8 @@ def test_xrandr_get_screen_multiple(Popen):
         '--output', 'DVI1', '--mode', '1280x1024', '--pos', '1280x0'
     ]
 
+    assert screen.get_edid() == 'd41d8cd98f00b204e9800998ecf8427e'
+
 
 @patch('xprofile.xrandr.Popen')
 def test_xrandr_get_screen_docked(Popen):
@@ -99,6 +85,8 @@ def test_xrandr_get_screen_docked(Popen):
 
     screen = Xrandr().get_screen()
 
+    assert Popen.called
+    assert Popen.call_args[0][0] == ['/usr/bin/xrandr', '--verbose']
     assert len(screen['displays']) == 8
 
     for index in [0, 5, 6]:
@@ -130,10 +118,12 @@ def test_xrandr_get_screen_docked(Popen):
         '--output', 'DP2',   '--primary', '--mode', '1920x1080', '--pos', '0x500'
     ]
 
+    assert screen.get_edid() == 'c2989146488f57fa9dc5f7efc263b0fd'
+
 
 @patch('xprofile.xrandr.Popen')
 def test_xrandr_get_screen_laptop(Popen):
-    with open('test/laptop_screen.txt', 'rb') as file:
+    with open('test/laptop.txt', 'rb') as file:
         xrandr_stdout = file.read()
 
     Popen.return_value.communicate.return_value = (xrandr_stdout, None)
@@ -141,6 +131,8 @@ def test_xrandr_get_screen_laptop(Popen):
 
     screen = Xrandr().get_screen()
 
+    assert Popen.called
+    assert Popen.call_args[0][0] == ['/usr/bin/xrandr', '--verbose']
     assert len(screen['displays']) == 8
 
     assert screen['displays'][0]['name'] == 'LVDS1'
@@ -160,3 +152,5 @@ def test_xrandr_get_screen_laptop(Popen):
     assert screen.get_xrandr_options() == [
         '--output', 'LVDS1', '--mode', '1920x1080', '--pos', '0x0'
     ]
+
+    assert screen.get_edid() == 'cfdee1377d86e245f2d187082f7a504a'
