@@ -11,10 +11,9 @@ log = logging.getLogger(__name__)
 
 
 RE_EDID = compile(r'^\s*([a-f0-9]{32})$')
-RE_CONNECTED = compile(r'^(\w+) connected.*$')
-RE_XRANDR_NOISE   = compile(r'^(Screen|\t|  |$)')
-RE_XRANDR_DISPLAY = compile(r'^(?P<name>[^\s]+) (?P<status>disconnected|connected|unknown connection) ?(?P<primary>primary)? ?(?P<geometry>(?P<width>[0-9]+)x(?P<height>[0-9]+)\+(?P<x>[0-9]+)\+(?P<y>[0-9]+))? ?(\([0-9a-fx]+\))? ?(?P<rotation>normal|left|inverted|right)? \((?P<modes>.*)\)')
+RE_XRANDR_DISPLAY = compile(r'^(?P<name>[^\s]+) (?P<status>disconnected|connected|unknown connection) ?(?P<primary>primary)? ?(?P<geometry>(?P<width>[0-9]+)x(?P<height>[0-9]+)\+(?P<x>[0-9]+)\+(?P<y>[0-9]+))? ?(?P<mode>\([0-9a-fx]+\))? ?(?P<rotation>normal|left|inverted|right)?.*$')
 RE_XRANDR_SCREEN = compile(r'^Screen (?P<screen>[0-9]+): minimum (?P<minimum>[0-9]+ x [0-9]+), current (?P<current>[0-9]+ x [0-9]+), maximum (?P<maximum>[0-9]+ x [0-9]+)')
+RE_DISPLAY_MODE = compile(r'^\s+(?P<dimension>[0-9x]+) (?P<modeid>\([0-9a-fx]+\)) [0-9\.]+MHz [-+]HSync [-+]VSync ?(?P<current>\*current)? ?(?P<preferred>\+preferred)?\s*$')
 
 
 class Screen(dict):
@@ -46,6 +45,12 @@ class Screen(dict):
 
 
 class Display(dict):
+    def __init__(self, *args, **kwargs):
+        self['edid'] = []
+        self['modes'] = {}
+        self['geometry'] = None
+        super(Display, self).__init__(*args, **kwargs)
+
     def get_xrandr_options(self):
         if not self['connected']:
             return []
@@ -60,8 +65,14 @@ class Display(dict):
         if self['primary']:
             line += ['--primary']
 
+        if self['mode'] in self['modes']:
+            mode = self['modes'][self['mode']]['dimension']
+        else:
+            # TODO: is this fallback needed?
+            mode = self['geometry']['dimension']
+
         line += [
-            '--mode', self['geometry']['dimension'],
+            '--mode', mode,
             '--pos',  self['geometry']['offset']
         ]
 
@@ -86,25 +97,19 @@ class Xrandr(object):
                 display['name'] = parts.group('name')
                 display['status'] = parts.group('status')
                 display['connected'] = parts.group('status') == 'connected'
+                display['primary'] = parts.group('primary') == 'primary'
+                display['mode'] = parts.group('mode')
 
                 if parts.group('rotation') == 'normal':
                     display['rotation'] = None
                 else:
                     display['rotation'] = parts.group('rotation')
-                display['primary'] = parts.group('primary') == 'primary'
-                display['edid'] = []
 
                 if parts.group('geometry'):
-                    display['geometry'] = {}
-
-                    # TODO: we should parse all modes per display instead of this hack
-                    if display['rotation'] == 'left':
-                        display['geometry']['dimension'] = '%sx%s' % (parts.group('height'), parts.group('width'))
-                    else:
-                        display['geometry']['dimension'] = '%sx%s' % (parts.group('width'), parts.group('height'))
-                    display['geometry']['offset'] = '%sx%s' % (parts.group('x'), parts.group('y'))
-                else:
-                    display['geometry'] = None
+                    display['geometry'] = {
+                        'dimension': '%sx%s' % (parts.group('width'), parts.group('height')),
+                        'offset':    '%sx%s' % (parts.group('x'), parts.group('y'))
+                    }
 
                 display['active'] = isinstance(display['geometry'], dict)
                 screen['displays'].append(display)
@@ -114,7 +119,17 @@ class Xrandr(object):
             if parts:
                 edid = line.strip().encode()
                 screen['displays'][-1]['edid'].append(edid)
-                #print('{0}: Found an edid line {1}'.format(screen['displays'][-1]['name'], edid))
+                continue
+
+            parts = RE_DISPLAY_MODE.match(line)
+            if parts:
+                screen['displays'][-1]['modes'][parts.group('modeid')] = {
+                    'id': parts.group('modeid'),
+                    'dimension': parts.group('dimension'),
+                    'current': parts.group('current') != None,
+                    'preferred': parts.group('preferred') != None,
+                }
+                continue
 
         return screen
 

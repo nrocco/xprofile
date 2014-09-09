@@ -52,6 +52,8 @@ def test_xrandr_get_screen_multiple(Popen):
     assert screen['displays'][0]['active'] == True
     assert screen['displays'][0]['rotation'] == None
     assert screen['displays'][0]['primary'] == False
+    assert type(screen['displays'][0]['edid']) == list
+    assert type(screen['displays'][0]['modes']) == dict
 
     assert screen['displays'][1]['name'] == 'DVI1'
     assert screen['displays'][1]['connected'] == True
@@ -61,11 +63,15 @@ def test_xrandr_get_screen_multiple(Popen):
     assert screen['displays'][1]['active'] == True
     assert screen['displays'][1]['rotation'] == None
     assert screen['displays'][1]['primary'] == False
+    assert type(screen['displays'][1]['edid']) == list
+    assert type(screen['displays'][1]['modes']) == dict
 
     assert screen['displays'][2]['name'] == 'TV1'
     assert screen['displays'][2]['connected'] == False
     assert screen['displays'][2]['status'] == 'unknown connection'
     assert screen['displays'][2]['geometry'] == None
+    assert type(screen['displays'][2]['edid']) == list
+    assert type(screen['displays'][2]['modes']) == dict
 
     assert screen.get_xrandr_options() == [
         '--output', 'VGA1', '--mode', '1280x1024', '--pos', '0x0',
@@ -92,6 +98,8 @@ def test_xrandr_get_screen_docked(Popen):
     for index in [0, 5, 6]:
         assert screen['displays'][index]['connected'] == True
         assert screen['displays'][index]['status'] == 'connected'
+        assert type(screen['displays'][index]['edid']) == list
+        assert type(screen['displays'][index]['modes']) == dict
 
     for index in [1, 2, 3, 4, 7]:
         assert screen['displays'][index]['connected'] == False
@@ -99,14 +107,22 @@ def test_xrandr_get_screen_docked(Popen):
         assert screen['displays'][index]['geometry'] == None
         assert screen['displays'][index]['primary'] == False
         assert screen['displays'][index]['active'] == False
+        assert screen['displays'][index]['mode'] == None
+        assert type(screen['displays'][index]['edid']) == list
+        assert type(screen['displays'][index]['modes']) == dict
 
     assert screen['displays'][0]['name'] == 'LVDS1'
     assert screen['displays'][0]['geometry'] == None
+    assert screen['displays'][0]['mode'] == None
+    assert '(0x4b)' in screen['displays'][0]['modes']
 
     assert screen['displays'][5]['name'] == 'HDMI3'
-    assert screen['displays'][5]['geometry']['dimension'] == '1920x1080'
+    assert screen['displays'][5]['geometry']['dimension'] == '1080x1920'
     assert screen['displays'][5]['geometry']['offset'] == '1930x0'
     assert screen['displays'][5]['rotation'] == 'left'
+    assert screen['displays'][5]['mode'] in screen['displays'][5]['modes']
+    assert screen['displays'][5]['mode'] == '(0xc9)'
+    assert screen['displays'][5]['modes']['(0xc9)']['current'] == True
 
     assert screen['displays'][6]['name'] == 'DP2'
     assert screen['displays'][6]['geometry']['dimension'] == '1920x1080'
@@ -138,9 +154,15 @@ def test_xrandr_get_screen_laptop(Popen):
     assert screen['displays'][0]['name'] == 'LVDS1'
     assert screen['displays'][0]['connected'] == True
     assert screen['displays'][0]['status'] == 'connected'
+    assert screen['displays'][0]['mode'] == '(0x4b)'
+    assert screen['displays'][0]['mode'] in screen['displays'][0]['modes']
+    assert screen['displays'][0]['modes']['(0x4b)']['current'] == True
     assert screen['displays'][0]['geometry']['dimension'] == '1920x1080'
     assert screen['displays'][0]['geometry']['offset'] == '0x0'
     assert screen['displays'][0]['rotation'] == None
+
+    assert type(screen['displays'][0]['edid']) == list
+    assert type(screen['displays'][0]['modes']) == dict
 
     for display in screen['displays'][1:]:
         assert display['connected'] == False
@@ -148,6 +170,9 @@ def test_xrandr_get_screen_laptop(Popen):
         assert display['geometry'] == None
         assert display['primary'] == False
         assert display['active'] == False
+        assert display['mode'] == None
+        assert type(display['edid']) == list
+        assert type(display['modes']) == dict
 
     assert screen.get_xrandr_options() == [
         '--output', 'LVDS1', '--mode', '1920x1080', '--pos', '0x0'
