@@ -21,7 +21,7 @@ def test_call_xrandr_failure(Popen):
 
 @patch('xprofile.xrandr.Popen')
 def test_call_xrandr_set_display(Popen):
-    Popen.return_value.communicate.return_value = ('', None)
+    Popen.return_value.communicate.return_value = (b'', None)
     Popen.return_value.wait.return_value = 0
 
     Xrandr(display=':1').call_xrandr()
