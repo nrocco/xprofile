@@ -6,8 +6,13 @@ A tool to manage and automatically apply xrandr configurations.
     :target: https://travis-ci.org/nrocco/xprofile
 
 
-**xprofile** is compatible with and tested on python version 2.6, 2.7, 3.2, 3.3
-and 3.4.
+**xprofile** is compatible with and tested on python versions:
+
+- 2.6
+- 2.7
+- 3.2
+- 3.3
+- 3.4
 
 
 installation
