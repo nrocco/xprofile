@@ -98,17 +98,19 @@ def create_profile(args, config):
     current_edid = screen.get_edid()
 
     for profile in config.sections():
-        if config.get(profile, 'edid') == current_edid:
-            log.error('A profile `{0}` already exists for EDID `{1}`.'.format(profile, current_edid))
-            return 1
+        log.error('A profile `{0}` already exists for EDID `{1}`.'.format(profile, current_edid))
+        return 1
+
+    name = args.description or '{0}\'s xrandr profile'.format(args.profile)
+    xrandr_args = ' '.join(screen.get_xrandr_options())
 
     if not args.dry_run:
         config.add_section(args.profile)
-        config.set(args.profile, 'name', args.description or '{0}\'s xrandr profile'.format(args.profile))
+        config.set(args.profile, 'name', name)
         config.set(args.profile, 'edid', current_edid)
-        config.set(args.profile, 'args', ' '.join(screen.get_xrandr_options()))
-        config.write(open(RCFILE, 'w'))
-        print('Profile created in {0}'.format(RCFILE))
+        config.set(args.profile, 'args', xrandr_args)
+        config.write(open(args.config, 'w'))
+        print('Profile created in {0}'.format(args.config))
     else:
         print('blaat')
 
