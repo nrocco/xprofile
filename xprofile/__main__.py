@@ -112,7 +112,10 @@ def create_profile(args, config):
         config.write(open(args.config, 'w'))
         print('Profile created in {0}'.format(args.config))
     else:
-        print('blaat')
+        print('[{0}]'.format(args.profile))
+        print('name = {0}'.format(name))
+        print('edid = {0}'.format(current_edid))
+        print('args = {0}'.format(xrandr_args))
 
     return 0
 
