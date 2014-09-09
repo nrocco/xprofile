@@ -41,6 +41,8 @@ def get_current_state(args, config):
     print('edid = {0}'.format(screen.get_edid()))
     print('args = {0}'.format(' '.join(screen.get_xrandr_options())))
 
+    return 0
+
 
 def activate_profile(args, config):
     '''
