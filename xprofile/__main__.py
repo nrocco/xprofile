@@ -6,6 +6,8 @@ import os
 import logging
 
 from argparse import ArgumentParser
+from shlex import split
+from subprocess import Popen
 
 from xprofile import __version__, DEFAULT_SECTION
 from xprofile.xrandr import Xrandr
@@ -77,15 +79,23 @@ def activate_profile(args, config):
         return 1
 
     else:
-        xrandr_args = config.get(args.profile, 'args').split()
+        xrandr_args = split(config.get(args.profile, 'args'))
         log.info('Activating profile %s...', args.profile)
 
     log.info('Calling xrandr with: %s', ' '.join(xrandr_args))
 
-    if not args.dry_run:
-        xrandr.call_xrandr(xrandr_args)
-    else:
+    if args.dry_run:
         log.warn('Not calling xrandr because --dry-run option detected')
+
+        return 3
+
+    xrandr.call_xrandr(xrandr_args)
+
+    if config.has_option(args.profile, 'exec_post'):
+        line = split(config.get(args.profile, 'exec_post'))
+
+        proc = Popen(split(line), stdout=sys.stdout, stderr=sys.stderr)
+        proc.communicate()
 
     return 0
 
