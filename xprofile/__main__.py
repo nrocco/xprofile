@@ -72,29 +72,29 @@ def activate_profile(args, config):
             current_profile = 'DEFAULT'
             log.error('No known profile found, falling back to defaults')
 
-        xrandr_args = config.get(current_profile, 'args').split()
+        args.profile = current_profile
 
     elif not config.has_section(args.profile):
         log.error('No known profile found with name: %s', args.profile)
         return 1
 
-    else:
-        xrandr_args = split(config.get(args.profile, 'args'))
-        log.info('Activating profile %s...', args.profile)
+    log.info('Activating profile %s...', args.profile)
+    xrandr_args = split(config.get(args.profile, 'args'))
 
-    log.info('Calling xrandr with: %s', ' '.join(xrandr_args))
+    log.info('Calling xrandr: %s', ' '.join(xrandr_args))
 
     if args.dry_run:
         log.warn('Not calling xrandr because --dry-run option detected')
 
-        return 3
+        return 0
 
     xrandr.call_xrandr(xrandr_args)
 
     if config.has_option(args.profile, 'exec_post'):
-        line = split(config.get(args.profile, 'exec_post'))
+        exec_post = config.get(args.profile, 'exec_post')
 
-        proc = Popen(split(line), stdout=sys.stdout, stderr=sys.stderr)
+        log.info('Calling exec_post: %s', exec_post)
+        proc = Popen(split(exec_post), stdout=sys.stdout, stderr=sys.stderr)
         proc.communicate()
 
     return 0
