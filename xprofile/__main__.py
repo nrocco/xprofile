@@ -6,6 +6,8 @@ import os
 import logging
 
 from argparse import ArgumentParser
+from shlex import split
+from subprocess import Popen
 
 from xprofile import __version__, DEFAULT_SECTION
 from xprofile.xrandr import Xrandr
@@ -70,22 +72,30 @@ def activate_profile(args, config):
             current_profile = 'DEFAULT'
             log.error('No known profile found, falling back to defaults')
 
-        xrandr_args = config.get(current_profile, 'args').split()
+        args.profile = current_profile
 
     elif not config.has_section(args.profile):
         log.error('No known profile found with name: %s', args.profile)
         return 1
 
-    else:
-        xrandr_args = config.get(args.profile, 'args').split()
-        log.info('Activating profile %s...', args.profile)
+    log.info('Activating profile %s...', args.profile)
+    xrandr_args = split(config.get(args.profile, 'args'))
 
-    log.info('Calling xrandr with: %s', ' '.join(xrandr_args))
+    log.info('Calling xrandr: %s', ' '.join(xrandr_args))
 
-    if not args.dry_run:
-        xrandr.call_xrandr(xrandr_args)
-    else:
+    if args.dry_run:
         log.warn('Not calling xrandr because --dry-run option detected')
+
+        return 0
+
+    xrandr.call_xrandr(xrandr_args)
+
+    if config.has_option(args.profile, 'exec_post'):
+        exec_post = config.get(args.profile, 'exec_post')
+
+        log.info('Calling exec_post: %s', exec_post)
+        proc = Popen(split(exec_post), stdout=sys.stdout, stderr=sys.stderr)
+        proc.communicate()
 
     return 0
 
