@@ -5,7 +5,9 @@ from mock import patch
 
 from xprofile.xrandr import Xrandr
 from xprofile.__main__ import main
+from distutils.spawn import find_executable
 
+xrandr_bin = find_executable('xrandr')
 
 @patch('xprofile.xrandr.Popen')
 def test_create_new_profile(Popen):
@@ -20,7 +22,7 @@ def test_create_new_profile(Popen):
 
         assert retval == 0
         assert Popen.called
-        assert Popen.call_args[0][0] == ['/usr/bin/xrandr', '--verbose']
+        assert Popen.call_args[0][0] == [xrandr_bin, '--verbose']
 
 
 @patch('xprofile.xrandr.Popen')
@@ -36,7 +38,7 @@ def test_create_new_profile_dryrun(Popen):
 
         assert retval == 0
         assert Popen.called
-        assert Popen.call_args[0][0] == ['/usr/bin/xrandr', '--verbose']
+        assert Popen.call_args[0][0] == [xrandr_bin, '--verbose']
 
 
 @patch('xprofile.xrandr.Popen')
@@ -51,7 +53,7 @@ def test_create_existing_profile(Popen):
 
     assert retval == 1
     assert Popen.called
-    assert Popen.call_args[0][0] == ['/usr/bin/xrandr', '--verbose']
+    assert Popen.call_args[0][0] == [xrandr_bin, '--verbose']
 
 def test_list():
     main(['--config', 'test/xprofilerc_example', 'list'])
@@ -81,7 +83,7 @@ def test_activate_profile(Popen):
     assert retval == 0
     assert Popen.called
     assert Popen.call_args[0][0] == [
-        '/usr/bin/xrandr',
+        xrandr_bin,
         '--output', 'LVDS1', '--off',
         '--output', 'DP2', '--mode', '1920x1080', '--pos', '0x500', '--primary',
         '--output', 'HDMI3', '--mode', '1920x1080', '--rotate', 'left', '--pos', '1930x0'
@@ -106,7 +108,7 @@ def test_activate_profile_auto(Popen):
 
     assert retval == 0
     assert Popen.called
-    assert Popen.call_args[0][0] == ['/usr/bin/xrandr', '--auto']
+    assert Popen.call_args[0][0] == [xrandr_bin, '--auto']
 
 
 @patch('xprofile.xrandr.Popen')
@@ -121,7 +123,7 @@ def test_activate_profile_auto__dryrun(Popen):
 
     assert retval == 0
     assert Popen.called
-    assert Popen.call_args[0][0] == ['/usr/bin/xrandr', '--verbose']
+    assert Popen.call_args[0][0] == [xrandr_bin, '--verbose']
 
 
 @patch('xprofile.xrandr.Popen')
@@ -136,4 +138,4 @@ def test_activate_profile_auto_nonexistent(Popen):
 
     assert retval == 0
     assert Popen.called
-    assert Popen.call_args[0][0] == ['/usr/bin/xrandr', '--auto']
+    assert Popen.call_args[0][0] == [xrandr_bin, '--auto']

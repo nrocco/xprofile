@@ -5,6 +5,7 @@ import logging
 from re import compile
 from hashlib import md5
 from subprocess import Popen, PIPE
+from distutils.spawn import find_executable
 
 
 log = logging.getLogger(__name__)
@@ -83,7 +84,7 @@ class Display(dict):
 
 
 class Xrandr(object):
-    def __init__(self, xrandr_bin='/usr/bin/xrandr', display=None):
+    def __init__(self, xrandr_bin=find_executable('xrandr'), display=None):
         self.xrandr_bin = xrandr_bin
         self.display = display
 
