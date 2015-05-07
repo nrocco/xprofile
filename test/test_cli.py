@@ -42,12 +42,15 @@ def test_create_new_profile_dryrun(Popen):
 
 
 @patch('xprofile.xrandr.Popen')
-def test_create_existing_profile(Popen):
+@patch('xprofile.xrandr.Screen.get_edid')
+def test_create_existing_profile(edid, Popen):
     with open('test/docked.txt', 'rb') as file:
         xrandr_stdout = file.read()
 
     Popen.return_value.communicate.return_value = (xrandr_stdout, None)
     Popen.return_value.wait.return_value = 0
+
+    edid.return_value = 'c2989146488f57fa9dc5f7efc263b0fd1'
 
     retval = main(['--config', 'test/xprofilerc_both_example', 'create', 'laptop'])
 
@@ -57,14 +60,14 @@ def test_create_existing_profile(Popen):
 
 
 @patch('xprofile.xrandr.Popen')
-def test_create_new_profile_when_other_profiles_exists(Popen):
-    with open('test/docked.txt', 'rb') as file:
+def test_create_new_profile_when_other_profiles_exists_dryrun(Popen):
+    with open('test/laptop.txt', 'rb') as file:
         xrandr_stdout = file.read()
 
     Popen.return_value.communicate.return_value = (xrandr_stdout, None)
     Popen.return_value.wait.return_value = 0
 
-    retval = main(['--config', 'test/xprofilerc_docked_only_example', 'create', 'not_in_config'])
+    retval = main(['--config', 'test/xprofilerc_docked_only_example', 'create', 'not_in_config', '--dry-run'])
 
     assert retval == 0
     assert Popen.called
