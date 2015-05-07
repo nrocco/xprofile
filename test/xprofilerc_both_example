@@ -1,0 +1,13 @@
+[DEFAULT]
+display = :0
+args = --auto
+
+[laptop]
+name = on the go
+edid = cfdee1377d86e245f2d187082f7a504a
+args = --auto
+
+[docked]
+name = my desk
+edid = c2989146488f57fa9dc5f7efc263b0fd1
+args = --output LVDS1 --off --output DP2 --mode 1920x1080 --pos 0x500 --primary --output HDMI3 --mode 1920x1080 --rotate left --pos 1930x0
