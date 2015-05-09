@@ -1,6 +1,6 @@
 .\" Man page generated from reStructuredText.
 .
-.TH XPROFILE 1 "2014-09-05" "1.1.5" ""
+.TH XPROFILE 1 "2015-05-09" "1.1.6" ""
 .SH NAME
 xprofile \- A tool to manage and automatically apply xrandr configurations
 .
@@ -90,6 +90,16 @@ write \fBxprofile\fP configuration files refer to \fBxprofilerc\fP(5)
 \fBxprofile\fP might not support every xrandr configuration options.
 .SH CHANGELOG
 .INDENT 0.0
+.TP
+.B 1.1.6 \- 2015\-05\-09
+.INDENT 7.0
+.IP \(bu 2
+Bugfix: Can\(aqt create more then 1 profile
+.IP \(bu 2
+Bugfix: Use find_executable instead of hardcoding the path to xrandr
+.IP \(bu 2
+Added: Add an exec_post hook when activating a profile
+.UNINDENT
 .TP
 .B 1.1.5 \- 2014\-09\-09
 .INDENT 7.0

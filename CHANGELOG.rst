@@ -1,6 +1,12 @@
 CHANGELOG
 =========
+
 All notable changes to this project will be documented in this file.
+
+1.1.6 - 2015-05-09
+    - Bugfix: Can't create more then 1 profile
+    - Bugfix: Use find_executable instead of hardcoding the path to xrandr
+    - Added: Add an exec_post hook when activating a profile
 
 1.1.5 - 2014-09-09
     - Added: Implement the --dry-run option for the `create` subcommand.
