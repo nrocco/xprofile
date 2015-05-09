@@ -108,8 +108,9 @@ def create_profile(args, config):
     current_edid = screen.get_edid()
 
     for profile in config.sections():
-        log.error('A profile `{0}` already exists for EDID `{1}`.'.format(profile, current_edid))
-        return 1
+        if config.get(profile, 'edid') == current_edid:
+            log.error('A profile `{0}` already exists for EDID `{1}`.'.format(profile, current_edid))
+            return 1
 
     name = args.description or '{0}\'s xrandr profile'.format(args.profile)
     xrandr_args = ' '.join(screen.get_xrandr_options())
