@@ -63,7 +63,7 @@ def list_all_profiles(args, config):
     '''
     known_profiles = config.sections()
 
-    if len(known_profiles) < 0:
+    if len(known_profiles) == 0:
         log.warn('No profiles found')
         return 0
 
