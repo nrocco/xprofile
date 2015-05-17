@@ -1,6 +1,6 @@
 .\" Man page generated from reStructuredText.
 .
-.TH XPROFILE 1 "2015-05-09" "1.1.6" ""
+.TH XPROFILE 1 "2015-05-17" "1.2.0" ""
 .SH NAME
 xprofile \- A tool to manage and automatically apply xrandr configurations
 .
@@ -57,23 +57,20 @@ show program\(aqs version number and exit
 list all available xrandr profiles
 .TP
 .B current
-get information about the current state
+get information about the current active profile
 .TP
-.B auto
-automatically select a known profile based on the current state
+.B generate
+generate a new profile and print to stdout
 .TP
 .B activate
-activate a known profile
-.TP
-.B create
-create a new profile based on the current state
+activate the given profile or automatically select one
 .UNINDENT
 .SH DESCRIPTION
 .sp
 \fBxprofile\fP TODO: edit this
 .SH CONFIGURATION
 .sp
-By default, \fBxprofile\fP reads \fI~/.xprofilerc\fP\&.  The confuration file is used
+By default, \fBxprofile\fP reads \fI~/.xprofilerc\fP\&.  The configuration file is used
 to store xrandr profiles so they can be applied later.
 .sp
 The location of the configuration file can be configured using the
@@ -90,6 +87,12 @@ write \fBxprofile\fP configuration files refer to \fBxprofilerc\fP(5)
 \fBxprofile\fP might not support every xrandr configuration options.
 .SH CHANGELOG
 .INDENT 0.0
+.TP
+.B 1.2.0 \- 2015\-05\-17
+.INDENT 7.0
+.IP \(bu 2
+Added: Refactored subcommands in an attempt to keep it simple and stupid
+.UNINDENT
 .TP
 .B 1.1.6 \- 2015\-05\-09
 .INDENT 7.0
