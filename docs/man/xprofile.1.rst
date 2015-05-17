@@ -9,10 +9,11 @@ A tool to manage and automatically apply xrandr configurations
 --------------------------------------------------------------
 
 :Author: Nico Di Rocco <dirocco.nico@gmail.com>
-:Date: 2015-05-09
+:Date: 2015-05-17
 :Copyright: GPLv3
-:Version: 1.1.6
+:Version: 1.2.0
 :Manual section: 1
+
 
 SYNOPSIS
 ========
@@ -33,16 +34,13 @@ list
     list all available xrandr profiles
 
 current
-    get information about the current state
+    get information about the current active profile
 
-auto
-    automatically select a known profile based on the current state
+generate
+    generate a new profile and print to stdout
 
 activate
-    activate a known profile
-
-create
-    create a new profile based on the current state
+    activate the given profile or automatically select one
 
 
 DESCRIPTION
@@ -52,7 +50,7 @@ DESCRIPTION
 
 CONFIGURATION
 =============
-By default, **xprofile** reads *~/.xprofilerc*.  The confuration file is used
+By default, **xprofile** reads *~/.xprofilerc*.  The configuration file is used
 to store xrandr profiles so they can be applied later.
 
 The location of the configuration file can be configured using the

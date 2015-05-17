@@ -193,7 +193,7 @@ def parse_commandline_arguments(args=None):
     parser_c.add_argument('--profile', default=None, help='the name for the new profile')
     parser_c.set_defaults(func=generate_profile)
 
-    parser_d = subparsers.add_parser('activate', help="activate a profile or automatically select the one")
+    parser_d = subparsers.add_parser('activate', help="activate the given profile or automatically select one")
     parser_d.add_argument('--dry-run', action='store_true', help='don\'t activate the profile')
     parser_d.add_argument('profile', default=None, nargs='?', help='the profile to select')
     parser_d.set_defaults(func=activate_profile)

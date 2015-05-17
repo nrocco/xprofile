@@ -9,9 +9,9 @@ Configuration for xprofile, a xrandr profile manager
 ----------------------------------------------------
 
 :Author: Nico Di Rocco <dirocco.nico@gmail.com>
-:Date: 2015-05-09
+:Date: 2015-05-17
 :Copyright: GPLv3
-:Version: 1.1.6
+:Version: 1.2.0
 :Manual section: 5
 
 

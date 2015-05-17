@@ -3,6 +3,9 @@ CHANGELOG
 
 All notable changes to this project will be documented in this file.
 
+1.2.0 - 2015-05-17
+    - Added: Refactored subcommands in an attempt to keep it simple and stupid
+
 1.1.6 - 2015-05-09
     - Bugfix: Can't create more then 1 profile
     - Bugfix: Use find_executable instead of hardcoding the path to xrandr
