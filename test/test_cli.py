@@ -11,12 +11,22 @@ class XprofileTestCase(TestCase):
 
     def setUp(self):
         patcher = patch('xprofile.xrandr.Popen')
-        self.addCleanup(patcher.stop)
-        self.xrandr = patcher.start()
-
         patcher2 = patch('xprofile.xrandr.Screen.get_edid')
-        self.addCleanup(patcher2.stop)
+
+        if 'addCleanup' in dir(self):
+            self.addCleanup(patcher.stop)
+            self.addCleanup(patcher2.stop)
+        else:
+            # This is needed for python 2.6, there is no addCleanup method
+            self.tearDownPatcher = [patcher, patcher2]
+
+        self.xrandr = patcher.start()
         self.edid = patcher2.start()
+
+    def tearDown(self):
+        if 'tearDownPatcher' in dir(self):
+            for patcher in self.tearDownPatcher:
+                patcher.stop()
 
     def set_xrandr_mock(self, xrandr_output, edid='mocked-edid-value'):
         with open(xrandr_output, 'rb') as file:
