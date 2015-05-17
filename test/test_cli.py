@@ -1,160 +1,114 @@
 # -*- coding: utf-8 -*-
-import tempfile
-
-from mock import patch
-
-from xprofile.__main__ import main
 from distutils.spawn import find_executable
+from mock import patch
+from os import remove
+from unittest import TestCase
+from xprofile.__main__ import main
 
-xrandr_bin = find_executable('xrandr')
 
+class XprofileTestCase(TestCase):
+    xrandr_bin = find_executable('xrandr')
 
-@patch('xprofile.xrandr.Popen')
-def test_create_new_profile(Popen):
-    with open('test/docked.txt', 'rb') as file:
-        xrandr_stdout = file.read()
+    def setUp(self):
+        patcher = patch('xprofile.xrandr.Popen')
+        self.addCleanup(patcher.stop)
+        self.xrandr = patcher.start()
 
-    with tempfile.NamedTemporaryFile() as tmpfile:
-        Popen.return_value.communicate.return_value = (xrandr_stdout, None)
-        Popen.return_value.wait.return_value = 0
+        patcher2 = patch('xprofile.xrandr.Screen.get_edid')
+        self.addCleanup(patcher2.stop)
+        self.edid = patcher2.start()
 
-        retval = main(['--config', tmpfile.name, 'create', 'testprofile'])
+    def set_xrandr_mock(self, xrandr_output, edid='mocked-edid-value'):
+        with open(xrandr_output, 'rb') as file:
+            xrandr_stdout = file.read()
+
+        self.xrandr.return_value.communicate.return_value = (xrandr_stdout, None)
+        self.xrandr.return_value.wait.return_value = 0
+
+        if edid:
+            self.edid.return_value = edid
+
+    def test_list_profiles(self):
+        self.set_xrandr_mock('test/docked.txt')
+        retval = main(['--config', 'test/xprofilerc_both_example', 'list'])
 
         assert retval == 0
-        assert Popen.called
-        assert Popen.call_args[0][0] == [xrandr_bin, '--verbose']
+        assert self.xrandr.called
+        assert self.xrandr.call_args[0][0] == [self.xrandr_bin, '--verbose']
 
-
-@patch('xprofile.xrandr.Popen')
-def test_create_new_profile_dryrun(Popen):
-    with open('test/docked.txt', 'rb') as file:
-        xrandr_stdout = file.read()
-
-    with tempfile.NamedTemporaryFile() as tmpfile:
-        Popen.return_value.communicate.return_value = (xrandr_stdout, None)
-        Popen.return_value.wait.return_value = 0
-
-        retval = main(['--config', tmpfile.name, 'create', 'testprofile', '--dry-run'])
+    def test_no_config_file(self):
+        self.set_xrandr_mock('test/docked.txt')
+        retval = main(['--config', 'test/non_existing_xprofilerc', 'list'])
+        remove('test/non_existing_xprofilerc')
 
         assert retval == 0
-        assert Popen.called
-        assert Popen.call_args[0][0] == [xrandr_bin, '--verbose']
+        assert not self.xrandr.called
 
+    def test_list_profiles_empty(self):
+        self.set_xrandr_mock('test/docked.txt')
+        retval = main(['--config', 'test/xprofilerc_empty', 'list'])
 
-@patch('xprofile.xrandr.Popen')
-@patch('xprofile.xrandr.Screen.get_edid')
-def test_create_existing_profile(edid, Popen):
-    with open('test/docked.txt', 'rb') as file:
-        xrandr_stdout = file.read()
+        assert retval == 0
+        assert not self.xrandr.called
 
-    Popen.return_value.communicate.return_value = (xrandr_stdout, None)
-    Popen.return_value.wait.return_value = 0
+    def test_current_profile(self):
+        self.set_xrandr_mock('test/docked.txt', 'c2989146488f57fa9dc5f7efc263b0fd1')
+        retval = main(['--config', 'test/xprofilerc_both_example', 'current'])
 
-    edid.return_value = 'c2989146488f57fa9dc5f7efc263b0fd1'
+        assert retval == 0
+        assert self.xrandr.called
+        assert self.xrandr.call_args[0][0] == [self.xrandr_bin, '--verbose']
 
-    retval = main(['--config', 'test/xprofilerc_both_example', 'create', 'laptop'])
+    def test_current_profile_does_not_exist(self):
+        self.set_xrandr_mock('test/docked.txt', 'dkfjkdjfkdjfkdkfjd')
+        retval = main(['--config', 'test/xprofilerc_both_example', 'current'])
 
-    assert retval == 1
-    assert Popen.called
-    assert Popen.call_args[0][0] == [xrandr_bin, '--verbose']
+        assert retval == 1
+        assert self.xrandr.called
+        assert self.xrandr.call_args[0][0] == [self.xrandr_bin, '--verbose']
 
+    def test_generate_profile(self):
+        self.set_xrandr_mock('test/docked.txt')
+        retval = main(['--config', 'test/xprofilerc_both_example', 'generate'])
 
-@patch('xprofile.xrandr.Popen')
-def test_create_new_profile_when_other_profiles_exists_dryrun(Popen):
-    with open('test/laptop.txt', 'rb') as file:
-        xrandr_stdout = file.read()
+        assert retval == 0
+        assert self.xrandr.called
+        assert self.xrandr.call_args[0][0] == [self.xrandr_bin, '--verbose']
 
-    Popen.return_value.communicate.return_value = (xrandr_stdout, None)
-    Popen.return_value.wait.return_value = 0
+    def test_activate_profile_auto_select_and_existing(self):
+        self.set_xrandr_mock('test/docked.txt', 'c2989146488f57fa9dc5f7efc263b0fd1')
+        retval = main(['--config', 'test/xprofilerc_both_example', 'activate'])
 
-    retval = main(['--config', 'test/xprofilerc_docked_only_example', 'create', 'not_in_config', '--dry-run'])
+        assert retval == 0
+        assert self.xrandr.called
+        assert self.xrandr.call_args[0][0] == [
+            self.xrandr_bin,
+            '--output', 'LVDS1', '--off',
+            '--output', 'DP2', '--mode', '1920x1080', '--pos', '0x500', '--primary',
+            '--output', 'HDMI3', '--mode', '1920x1080', '--rotate', 'left', '--pos', '1930x0'
+        ]
 
-    assert retval == 0
-    assert Popen.called
-    assert Popen.call_args[0][0] == [xrandr_bin, '--verbose']
+    def test_activate_profile_auto_select_and_non_existing(self):
+        self.set_xrandr_mock('test/docked.txt', 'non-existing-edid')
+        retval = main(['--config', 'test/xprofilerc_both_example', 'activate'])
 
+        assert retval == 0
+        assert self.xrandr.called
+        assert self.xrandr.call_args[0][0] == [self.xrandr_bin, '--auto']
 
-def test_list():
-    main(['--config', 'test/xprofilerc_both_example', 'list'])
+    def test_activate_profile(self):
+        pass
 
+    def test_activate_profile_non_existing(self):
+        self.set_xrandr_mock('test/docked.txt')
+        retval = main(['--config', 'test/xprofilerc_both_example', 'activate', 'non-existing-profile'])
 
-@patch('xprofile.xrandr.Popen')
-def test_current(Popen):
-    with open('test/docked.txt', 'rb') as file:
-        xrandr_stdout = file.read()
+        assert retval == 1
+        assert not self.xrandr.called
 
-    Popen.return_value.communicate.return_value = (xrandr_stdout, None)
-    Popen.return_value.wait.return_value = 0
+    def test_activate_profile_with_dry_run(self):
+        self.set_xrandr_mock('test/docked.txt', 'c2989146488f57fa9dc5f7efc263b0fd1')
+        retval = main(['--config', 'test/xprofilerc_both_example', 'activate', '--dry-run'])
 
-    retval = main(['--config', 'test/xprofilerc_both_example', 'current'])
-
-    assert retval == 0
-    assert Popen.called
-
-
-@patch('xprofile.xrandr.Popen')
-def test_activate_profile(Popen):
-    Popen.return_value.communicate.return_value = (b'', None)
-    Popen.return_value.wait.return_value = 0
-
-    retval = main(['--config', 'test/xprofilerc_both_example', 'activate', 'docked'])
-
-    assert retval == 0
-    assert Popen.called
-    assert Popen.call_args[0][0] == [
-        xrandr_bin,
-        '--output', 'LVDS1', '--off',
-        '--output', 'DP2', '--mode', '1920x1080', '--pos', '0x500', '--primary',
-        '--output', 'HDMI3', '--mode', '1920x1080', '--rotate', 'left', '--pos', '1930x0'
-    ]
-
-
-def test_activate_profile_nonexistent():
-    retval = main(['--config', 'test/xprofilerc_both_example', 'activate', 'nonexistent'])
-
-    assert retval == 1
-
-
-@patch('xprofile.xrandr.Popen')
-def test_activate_profile_auto(Popen):
-    with open('test/laptop.txt', 'rb') as file:
-        xrandr_stdout = file.read()
-
-    Popen.return_value.communicate.return_value = (xrandr_stdout, None)
-    Popen.return_value.wait.return_value = 0
-
-    retval = main(['--config', 'test/xprofilerc_both_example', 'auto'])
-
-    assert retval == 0
-    assert Popen.called
-    assert Popen.call_args[0][0] == [xrandr_bin, '--auto']
-
-
-@patch('xprofile.xrandr.Popen')
-def test_activate_profile_auto__dryrun(Popen):
-    with open('test/laptop.txt', 'rb') as file:
-        xrandr_stdout = file.read()
-
-    Popen.return_value.communicate.return_value = (xrandr_stdout, None)
-    Popen.return_value.wait.return_value = 0
-
-    retval = main(['--config', 'test/xprofilerc_both_example', 'auto', '--dry-run'])
-
-    assert retval == 0
-    assert Popen.called
-    assert Popen.call_args[0][0] == [xrandr_bin, '--verbose']
-
-
-@patch('xprofile.xrandr.Popen')
-def test_activate_profile_auto_nonexistent(Popen):
-    with open('test/docked.txt', 'rb') as file:
-        xrandr_stdout = file.read()
-
-    Popen.return_value.communicate.return_value = (xrandr_stdout, None)
-    Popen.return_value.wait.return_value = 0
-
-    retval = main(['--config', 'test/xprofilerc_both_example', 'auto'])
-
-    assert retval == 0
-    assert Popen.called
-    assert Popen.call_args[0][0] == [xrandr_bin, '--auto']
+        assert retval == 0
+        assert self.xrandr.called
