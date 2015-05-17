@@ -31,7 +31,7 @@ def _get_current_screen_and_edid():
     screen = Xrandr().get_screen()
     current_edid = screen.get_edid()
 
-    log.debug('Edid of your current screen is: {}'.format(current_edid))
+    log.debug('Edid of your current screen is: {0}'.format(current_edid))
 
     return (screen, current_edid)
 
@@ -47,9 +47,9 @@ def _get_profile_with_edid(edid, config):
             break
 
     if not profile_name:
-        log.debug('No known profile found with edid: {}'.format(edid))
+        log.debug('No known profile found with edid: {0}'.format(edid))
     else:
-        log.debug('Known profile `{}` found for edid: {}'.format(profile_name, edid))
+        log.debug('Known profile `{0}` found for edid: {1}'.format(profile_name, edid))
 
     return profile_name
 
@@ -143,13 +143,13 @@ def activate_profile(args, config):
             args.profile = 'DEFAULT'
 
     elif not config.has_section(args.profile):
-        log.error('No known profile found with name: %s', args.profile)
+        log.error('No known profile found with name: {0}'.format(args.profile))
         return 1
 
-    log.debug('Activating profile %s...', args.profile)
+    log.debug('Activating profile {0}...'.format(args.profile))
     xrandr_args = split(config.get(args.profile, 'args'))
 
-    log.debug('Calling xrandr: %s', ' '.join(xrandr_args))
+    log.debug('Calling xrandr: {0}'.format(' '.join(xrandr_args)))
 
     if args.dry_run:
         log.warn('Not calling xrandr because --dry-run option detected')
@@ -161,7 +161,7 @@ def activate_profile(args, config):
     if config.has_option(args.profile, 'exec_post'):
         exec_post = config.get(args.profile, 'exec_post')
 
-        log.debug('Calling exec_post: %s', exec_post)
+        log.debug('Calling exec_post: {0}'.format(exec_post))
         proc = Popen(split(exec_post), stdout=sys.stdout, stderr=sys.stderr)
         proc.communicate()
 
@@ -221,7 +221,7 @@ def main(args=None):
 
     # Create a configuration file if it does not exist
     if not os.path.exists(args.config):
-        log.warn('Creating config file because it does not exist: %s', args.config)
+        log.warn('Creating config file because it does not exist: {0}'.format(args.config))
         with open(args.config, 'w') as file:
             file.write(DEFAULT_SECTION.format(display=os.environ['DISPLAY']))
 
@@ -229,8 +229,8 @@ def main(args=None):
     config = ConfigParser()
     config.read(args.config)
 
-    log.debug('Read xrandr profile information from: %s', args.config)
-    log.debug('Found {} known profiles: {}'.format(len(config.sections()),
+    log.debug('Read xrandr profile information from: {0}'.format(args.config))
+    log.debug('Found {0} known profiles: {1}'.format(len(config.sections()),
                                                    config.sections()))
     return args.func(args, config=config)
 
