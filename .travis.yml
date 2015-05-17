@@ -7,3 +7,4 @@ python:
   - "3.4"
 install: echo this project has no dependencies
 script: make test
+env: DISPLAY=:0
