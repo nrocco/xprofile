@@ -19,31 +19,111 @@ except ImportError:
     from configparser import ConfigParser
 
 
+PROFILE_STRING = '''[{profile}]
+name = {name}
+edid = {edid}
+args = {args}'''
+
+
 log = logging.getLogger(__name__)
+
+def _get_current_screen_and_edid():
+    screen = Xrandr().get_screen()
+    current_edid = screen.get_edid()
+
+    log.debug('Edid of your current screen is: {}'.format(current_edid))
+
+    return (screen, current_edid)
+
+
+
+def _get_profile_with_edid(edid, config):
+    profile_name = None
+
+    log.debug('Search through known profiles...')
+    for profile in config.sections():
+        if config.get(profile, 'edid') == edid:
+            profile_name = profile
+            break
+
+    if not profile_name:
+        log.debug('No known profile found with edid: {}'.format(edid))
+    else:
+        log.debug('Known profile `{}` found for edid: {}'.format(profile_name, edid))
+
+    return profile_name
+
 
 
 def list_all_profiles(args, config):
     '''
     List all known profiles from ~/.xprofilerc
+
+    The current profile is marked with a '*'
     '''
-    if len(config.sections()) > 0:
-        print('\n'.join(config.sections()));
+    known_profiles = config.sections()
+
+    if len(known_profiles) < 0:
+        log.warn('No profiles found')
+        return 0
+
+    screen, current_edid = _get_current_screen_and_edid()
+    current_profile_name = _get_profile_with_edid(current_edid, config)
+    padding = max([len(p) for p in known_profiles])
+
+    for profile in known_profiles:
+        vars = {
+            'active': '*' if profile == current_profile_name else ' ',
+            'name':    profile,
+            'edid':    config.get(profile, 'edid'),
+            'padding': padding
+        }
+
+        print('{active} {name:{padding}}\t{edid}'.format(**vars))
 
     return 0
 
 
-def get_current_state(args, config):
-    '''
-    Print the current EDID to stdout
-    Print the current xrandr configuration
-    '''
-    # TODO: detecting if profile active, or not
-    screen = Xrandr().get_screen()
 
-    print('edid = {0}'.format(screen.get_edid()))
-    print('args = {0}'.format(' '.join(screen.get_xrandr_options())))
+def get_current_profile(args, config):
+    '''
+    Show the details of the current active profile
+    '''
+    screen, current_edid = _get_current_screen_and_edid()
+    current_profile_name = _get_profile_with_edid(current_edid, config)
+
+    if not current_profile_name:
+        log.error('Currently no known profile is applied. '
+                  'Use the `generate` subcommand to generate one.')
+        return 1
+
+    print(PROFILE_STRING.format(
+        profile=current_profile_name,
+        name=config.get(current_profile_name, 'name'),
+        edid=config.get(current_profile_name, 'edid'),
+        args=config.get(current_profile_name, 'args')
+    ))
 
     return 0
+
+
+
+def generate_profile(args, config):
+    '''
+    Generate configuration for the current EDID and print to stdout.
+    '''
+    screen, current_edid = _get_current_screen_and_edid()
+
+    profile_name = args.profile or 'my-screen-setup'
+    name = args.description or '{0}\'s xrandr profile'.format(profile_name)
+    xrandr_args = ' '.join(screen.get_xrandr_options())
+
+    print(PROFILE_STRING.format(profile=profile_name,
+                                name=name,
+                                edid=current_edid,
+                                args=xrandr_args))
+    return 0
+
 
 
 def activate_profile(args, config):
@@ -55,33 +135,21 @@ def activate_profile(args, config):
     xrandr = Xrandr()
 
     if not args.profile:
-        log.info('Determining EDID hash of the current screen...')
-        screen = xrandr.get_screen()
-        current_edid = screen.get_edid()
-        current_profile = None
+        screen, current_edid = _get_current_screen_and_edid()
+        args.profile = _get_profile_with_edid(current_edid, config)
 
-        log.info('Current EDID: {0}'.format(current_edid))
-        log.info('Search through known profiles...')
-
-        for profile in config.sections():
-            if config.get(profile, 'edid') == current_edid:
-                current_profile = profile
-                log.warn('Known profile found for this screen: %s', profile)
-
-        if not current_profile:
-            current_profile = 'DEFAULT'
-            log.error('No known profile found, falling back to defaults')
-
-        args.profile = current_profile
+        if not args.profile:
+            log.error('No known profile found, falling back to DEFAULT')
+            args.profile = 'DEFAULT'
 
     elif not config.has_section(args.profile):
         log.error('No known profile found with name: %s', args.profile)
         return 1
 
-    log.info('Activating profile %s...', args.profile)
+    log.debug('Activating profile %s...', args.profile)
     xrandr_args = split(config.get(args.profile, 'args'))
 
-    log.info('Calling xrandr: %s', ' '.join(xrandr_args))
+    log.debug('Calling xrandr: %s', ' '.join(xrandr_args))
 
     if args.dry_run:
         log.warn('Not calling xrandr because --dry-run option detected')
@@ -93,42 +161,12 @@ def activate_profile(args, config):
     if config.has_option(args.profile, 'exec_post'):
         exec_post = config.get(args.profile, 'exec_post')
 
-        log.info('Calling exec_post: %s', exec_post)
+        log.debug('Calling exec_post: %s', exec_post)
         proc = Popen(split(exec_post), stdout=sys.stdout, stderr=sys.stderr)
         proc.communicate()
 
     return 0
 
-
-def create_profile(args, config):
-    '''
-    Generate a new .ini style configuration section for the current EDID.
-    '''
-    screen = Xrandr().get_screen()
-    current_edid = screen.get_edid()
-
-    for profile in config.sections():
-        if config.get(profile, 'edid') == current_edid:
-            log.error('A profile `{0}` already exists for EDID `{1}`.'.format(profile, current_edid))
-            return 1
-
-    name = args.description or '{0}\'s xrandr profile'.format(args.profile)
-    xrandr_args = ' '.join(screen.get_xrandr_options())
-
-    if not args.dry_run:
-        config.add_section(args.profile)
-        config.set(args.profile, 'name', name)
-        config.set(args.profile, 'edid', current_edid)
-        config.set(args.profile, 'args', xrandr_args)
-        config.write(open(args.config, 'w'))
-        print('Profile created in {0}'.format(args.config))
-    else:
-        print('[{0}]'.format(args.profile))
-        print('name = {0}'.format(name))
-        print('edid = {0}'.format(current_edid))
-        print('args = {0}'.format(xrandr_args))
-
-    return 0
 
 
 def parse_commandline_arguments(args=None):
@@ -147,23 +185,18 @@ def parse_commandline_arguments(args=None):
     parser_a = subparsers.add_parser('list', help="list all available xrandr profiles")
     parser_a.set_defaults(func=list_all_profiles)
 
-    parser_b = subparsers.add_parser('current', help="get information about the current state")
-    parser_b.set_defaults(func=get_current_state)
+    parser_b = subparsers.add_parser('current', help="get information about the current active profile")
+    parser_b.set_defaults(func=get_current_profile)
 
-    parser_c = subparsers.add_parser('auto', help="automatically select a known profile based on the current state")
-    parser_c.add_argument('--dry-run', action='store_true', help='don\'t activate the profile')
-    parser_c.set_defaults(func=activate_profile, profile=None)
+    parser_c = subparsers.add_parser('generate', help="generate a new profile and print to stdout")
+    parser_c.add_argument('--description', default=None, help='the description for the new profile')
+    parser_c.add_argument('--profile', default=None, help='the name for the new profile')
+    parser_c.set_defaults(func=generate_profile)
 
-    parser_d = subparsers.add_parser('activate', help="activate a known profile")
+    parser_d = subparsers.add_parser('activate', help="activate a profile or automatically select the one")
     parser_d.add_argument('--dry-run', action='store_true', help='don\'t activate the profile')
-    parser_d.add_argument('profile', help='the profile to select')
+    parser_d.add_argument('profile', default=None, nargs='?', help='the profile to select')
     parser_d.set_defaults(func=activate_profile)
-
-    parser_e = subparsers.add_parser('create', help="create a new profile based on the current state")
-    parser_e.add_argument('--dry-run', action='store_true', help='don\'t write configuration to disk')
-    parser_e.add_argument('--description', default=None, help='the description for the new profile')
-    parser_e.add_argument('profile', help='the name for the new profile')
-    parser_e.set_defaults(func=create_profile)
 
     if args:
         parsed_args = parser.parse_args(args)
@@ -171,6 +204,7 @@ def parse_commandline_arguments(args=None):
         parsed_args = parser.parse_args()
 
     return parsed_args, parser
+
 
 
 def main(args=None):
@@ -182,12 +216,12 @@ def main(args=None):
     args.config = os.path.abspath(os.path.expanduser(args.config))
 
     # Setup logging
-    logging.basicConfig(level=logging.INFO if args.verbose else logging.WARN,
-                        format='%(message)s')
+    logging.basicConfig(level=logging.DEBUG if args.verbose else logging.INFO,
+                        format='%(levelname)s: %(message)s')
 
     # Create a configuration file if it does not exist
     if not os.path.exists(args.config):
-        log.info('Creating config file because it does not exist: %s', args.config)
+        log.warn('Creating config file because it does not exist: %s', args.config)
         with open(args.config, 'w') as file:
             file.write(DEFAULT_SECTION.format(display=os.environ['DISPLAY']))
 
@@ -195,9 +229,11 @@ def main(args=None):
     config = ConfigParser()
     config.read(args.config)
 
-    log.info('Read xrandr profile information from: %s', args.config)
-
+    log.debug('Read xrandr profile information from: %s', args.config)
+    log.debug('Found {} known profiles: {}'.format(len(config.sections()),
+                                                   config.sections()))
     return args.func(args, config=config)
+
 
 
 if '__main__' == __name__:
