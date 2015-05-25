@@ -48,6 +48,10 @@ class XprofileTestCase(TestCase):
 
     def test_no_config_file(self):
         self.set_xrandr_mock('test/docked.txt')
+        try:
+            remove('test/non_existing_xprofilerc')
+        except:
+            pass
         retval = main(['--config', 'test/non_existing_xprofilerc', 'list'])
         remove('test/non_existing_xprofilerc')
 
