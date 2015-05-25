@@ -223,7 +223,7 @@ def main(args=None):
     if not os.path.exists(args.config):
         log.warn('Creating config file because it does not exist: {0}'.format(args.config))
         with open(args.config, 'w') as file:
-            file.write(DEFAULT_SECTION.format(display=os.environ['DISPLAY']))
+            file.write(DEFAULT_SECTION.format(display=os.environ.get('DISPLAY', ':0')))
 
     # Read profile configuration
     config = ConfigParser()
